@@ -19,7 +19,7 @@ module "ips_vpc" {
 }
 
 # Create Security groups
-data "https" "my_public_ip" {
+data "http" "my_public_ip" {
   url = "https://icanhazip.com" # fetch my public IP
 }
 resource "aws_security_group" "ssh_http" {
@@ -31,14 +31,14 @@ resource "aws_security_group" "ssh_http" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["${chomp(data.https.my_public_ip.body)}/32"]
+    cidr_blocks      = ["${chomp(data.http.my_public_ip.response_body)}/32"]
   }
   ingress {
     description      = "HTTP from My public IP"
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
-    cidr_blocks      = ["${chomp(data.https.my_public_ip.body)}/32"]
+    cidr_blocks      = ["${chomp(data.http.my_public_ip.response_body)}/32"]
   }
   egress {
     from_port        = 0
@@ -48,6 +48,7 @@ resource "aws_security_group" "ssh_http" {
     ipv6_cidr_blocks = ["::/0"]
   }
   tags = {
+    Environment = "Dev"
     Category = "VPC"
     ProjectName = "IPS"
   }
@@ -64,7 +65,9 @@ module "monitor_ec2" {
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.ssh_http.id]
   subnet_id              = module.ips_vpc.public_subnets[0]
+  user_data_base64 = var.monitor_user_data_64
   tags = {
+    Environment = "Dev"
     Category = "EC2"
     ProjectName = "IPS"
   }

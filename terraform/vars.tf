@@ -29,3 +29,7 @@ variable "key_name" {
     type = string
     default = "mykeypair"
 }
+variable "monitor_user_data_64" {
+    type = string
+    default = "IyEvYmluL2Jhc2gKYXB0LWdldCAteSB1cGRhdGUgJiYgYXB0LWdldCBpbnN0YWxsIC15IHB5dGhvbjMtcGlwICYmIHBpcCBpbnN0YWxsIERqYW5nbwpjZCAvaG9tZS91YnVudHUKZ2l0IGNsb25lIGh0dHBzOi8vQnVpS2ltUGhhdDpnaXRodWJfcGF0XzExQUlRUVVQUTBYblExOEdyMnI2UHBfOW1ncnRtUVgwamlZWWdRbFZKamhaYXNjTEIxaHdlWUg2Wk9KS2FkQ2JReEFKNVpXQUJCbE5NTkpVc3lAZ2l0aHViLmNvbS9CdWlLaW1QaGF0L0lQUy5naXQKY2hvd24gLVIgdWJ1bnR1IElQUy8="
+}
