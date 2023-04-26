@@ -4,3 +4,6 @@
 # Terraform modules
 .terraform/
 .terraform*
+
+# Cache
+__pycache__
