@@ -79,10 +79,10 @@ WSGI_APPLICATION = 'monitorsite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB'),
-        'USER': os.environ.get('USER'),
+        'NAME': 'ips',
+        'USER': 'ips_admin',
         'PASSWORD': os.environ.get('PASSWORD'),
-        'HOST': os.environ.get('HOST')
+        'HOST': 'localhost'
     }
 }
 
@@ -111,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Bangkok'
 
 USE_I18N = True
 
