@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ips',
         'USER': 'ips_admin',
-        'PASSWORD': os.environ.get('PASSWORD'),
+        'PASSWORD': 'Qx2b&Gy0N9R1*uEn8N7PM@Juw*!O8T',
         'HOST': 'localhost'
     }
 }
