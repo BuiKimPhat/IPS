@@ -2,8 +2,35 @@
 
 {% block head %}
 <title>Dashboard - IPS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock head %}
 
 {% block content %}
 <h1><i><b>IPS</b> - Dashboard</i></h1>
+<div>
+    <canvas id="alertChart"></canvas>
+</div>
+<script>
+    const ctx = document.getElementById('alertChart');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [65, 59, 80, 81, 56, 55, 40],
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 {% endblock content %}
