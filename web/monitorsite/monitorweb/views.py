@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login as login_func
+from django.contrib.auth import authenticate, logout as logout_func, login as login_func
 
 def login(request):
     context = { "messages": None }
@@ -11,15 +11,18 @@ def login(request):
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        login(request, user)
-        next_view = request.GET["next"]
-        if next_view is not None:
-            redirect(next_view)
+        login_func(request, user)
+        if "next" in request.GET:
+            return redirect(request.GET["next"])
         else:
-            redirect("index")
+            return redirect("monitorweb:index")
     else:
         context["message"] = "Invalid credentials!"
         return render(request, "monitorweb/login.html", context)
+
+def logout(request):
+    logout_func(request)
+    return redirect("monitorweb:login")
 
 @login_required
 def index(request):
