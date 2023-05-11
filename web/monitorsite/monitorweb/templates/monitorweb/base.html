@@ -9,6 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
         crossorigin="anonymous"></script>
+    <style>
+        #collapseBtn {
+            -webkit-transition: all 0.4s ease-in-out;
+            -moz-transition: all 0.4s ease-in-out;
+            -o-transition: all 0.4s ease-in-out;
+            transition: all 0.4s ease-in-out;
+        }
+    </style>
 
     {% block head %}
     {% endblock head %}
@@ -35,9 +43,14 @@
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <button class="btn w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
+                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:logout' %}">
+                        <i class="bi bi-box-arrow-left"></i>
+                    </a>
+                </li>
+                <li class="pr-0 w-100 mr-0 py-3">
+                    <button id="collapseBtn" class="btn w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
                         aria-expanded="false" aria-controls="sidebarCollapse">
-                        <i id="collapseBtn" class="bi bi-fast-forward"></i>
+                        <i class="bi bi-fast-forward"></i>
                     </button>
                 </li>
             </ul>
@@ -51,6 +64,8 @@
                             href="{% url 'monitorweb:agents' %}">Agents</a></li>
                     <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
                             href="{% url 'monitorweb:alerts' %}">Alerts</a></li>
+                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
+                            href="{% url 'monitorweb:logout' %}">Logout</a></li>
                     <li class="ml-0 w-100 pl-0 py-3"><button class="btn w-100 text-start" type="button"
                             data-bs-toggle="collapse" data-bs-target="#sidebarCollapse" aria-expanded="false"
                             aria-controls="sidebarCollapse">Collapse</button></li>
@@ -64,13 +79,26 @@
         </div>
     </div>
     <script>
-    const sidebarCollapse = document.getElementById('sidebarCollapse');
-    sidebarCollapse.addEventListener('shown.bs.collapse', event => {
-        document.getElementById('collapseBtn').className = "bi bi-rewind";
-    })
-    sidebarCollapse.addEventListener('hidden.bs.collapse', event => {
-        document.getElementById('collapseBtn').className = "bi bi-fast-forward";
-    })
+        var rotated = false;
+        const rotateColBtn = () => {
+            var collapseBtn = document.getElementById('collapseBtn'),
+                deg = rotated ? 0 : 180;
+
+            collapseBtn.style.webkitTransform = 'rotate(' + deg + 'deg)';
+            collapseBtn.style.mozTransform = 'rotate(' + deg + 'deg)';
+            collapseBtn.style.msTransform = 'rotate(' + deg + 'deg)';
+            collapseBtn.style.oTransform = 'rotate(' + deg + 'deg)';
+            collapseBtn.style.transform = 'rotate(' + deg + 'deg)';
+
+            rotated = !rotated;
+        }
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+        sidebarCollapse.addEventListener('show.bs.collapse', event => {
+            rotateColBtn();
+        })
+        sidebarCollapse.addEventListener('hide.bs.collapse', event => {
+            rotateColBtn();
+        })
     </script>
 </body>
 
