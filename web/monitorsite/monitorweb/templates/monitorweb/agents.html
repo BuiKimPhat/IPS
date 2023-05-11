@@ -9,30 +9,37 @@
     <h1 class="display-6"><i><b>IPS</b> - Agents</i></h1>
     <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
 </div>
-<div>
-    <canvas id="alertChart"></canvas>
-</div>
-<script>
-    const ctx = document.getElementById('alertChart');
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
-            datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)'
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">IP</th>
+            <th scope="col">Health</th>
+            <th scope="col">Alerts</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">1</th>
+            <td>Mark</td>
+            <td>Otto</td>
+            <td>@mdo</td>
+            <td>69</td>
+        </tr>
+        <tr>
+            <th scope="row">2</th>
+            <td>Jacob</td>
+            <td>Thornton</td>
+            <td>@fat</td>
+            <td>69</td>
+        </tr>
+        <tr>
+            <th scope="row">3</th>
+            <td colspan="2">Larry the Bird</td>
+            <td>@twitter</td>
+            <td>69</td>
+        </tr>
+    </tbody>
+</table>
 {% endblock content %}
