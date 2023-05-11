@@ -1,9 +1,11 @@
 # Environment
 .env
+venv/
 
-# Terraform modules
+# Terraform
 .terraform/
 .terraform*
+terraform.tfstate*
 
 # Cache
 __pycache__

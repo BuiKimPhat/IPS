@@ -2,6 +2,14 @@ provider "aws" {
   region = "us-east-1"
 }
 
+terraform {
+  backend "s3" {
+    bucket = "ips-terraform"
+    key    = "ips-terraform-state"
+    region = "us-east-1"
+  }
+}
+
 # Create VPC
 module "ips_vpc" {
   source = "terraform-aws-modules/vpc/aws"
