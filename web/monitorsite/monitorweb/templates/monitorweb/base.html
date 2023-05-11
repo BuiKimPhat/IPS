@@ -28,27 +28,27 @@
         <div class="pt-5">
             <ul class="list-unstyled">
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:index' %}">
+                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:index' %}" title="Dashboard">
                         <i class="bi bi-speedometer"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:agents' %}">
+                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:agents' %}" title="Agents">
                         <i class="bi bi-pc-display-horizontal"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:alerts' %}">
+                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:alerts' %}" title="Alerts">
                         <i class="bi bi-exclamation-triangle"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:logout' %}">
+                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:logout' %}" title="Logout">
                         <i class="bi bi-box-arrow-left"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <button id="collapseBtn" class="btn w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
+                    <button id="collapseBtn" class="btn w-100" title="Expand" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
                         aria-expanded="false" aria-controls="sidebarCollapse">
                         <i class="bi bi-fast-forward"></i>
                     </button>
@@ -95,9 +95,11 @@
         const sidebarCollapse = document.getElementById('sidebarCollapse');
         sidebarCollapse.addEventListener('show.bs.collapse', event => {
             rotateColBtn();
+            document.getElementById('collapseBtn').title = "Collapse";
         })
         sidebarCollapse.addEventListener('hide.bs.collapse', event => {
             rotateColBtn();
+            document.getElementById('collapseBtn').title = "Expand";
         })
     </script>
 </body>
