@@ -4,7 +4,7 @@ class Agent(models.Model):
     def __str__(self):
         return self.name
     name = models.CharField(max_length=200)
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(unique=True)
     health = models.URLField(max_length=200)
     registered_at = models.DateTimeField(auto_now_add=True)
 
@@ -18,4 +18,4 @@ class Alert(models.Model):
     dst = models.GenericIPAddressField()
     dstp = models.PositiveIntegerField()
     protocol = models.CharField(max_length=10)
-    action = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, logout as logout_func, login as login_func
+from django.core.paginator import Paginator
+from .models import Agent, Alert
 
 def login(request):
     # Check if user is authenticated
@@ -38,10 +40,18 @@ def index(request):
 
 @login_required
 def agents(request):
-    context = {}
-    return render(request, "monitorweb/agents.html", context)    
+    agent_list = Agent.objects.order_by("-registered_at")
+    paginator = Paginator(agent_list, 25)
+
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+    return render(request, "monitorweb/agents.html", {"page_obj": page_obj})    
 
 @login_required
 def alerts(request):
-    context = {}
-    return render(request, "monitorweb/alerts.html", context)    
+    agent_list = Alert.objects.order_by("-created_at")
+    paginator = Paginator(agent_list, 100)
+
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj})    
