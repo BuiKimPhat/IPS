@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, logout as logout_func, login as login_func
 from django.core.paginator import Paginator
 from .models import Agent, Alert
+from django.db.models import Q
 
 def login(request):
     # Check if user is authenticated
@@ -40,18 +41,31 @@ def index(request):
 
 @login_required
 def agents(request):
-    agent_list = Agent.objects.order_by("-registered_at")
-    paginator = Paginator(agent_list, 25)
+    search = request.GET.get("search")
+    if search is None:
+        agent_list = Agent.objects.order_by("-registered_at")
+    else: 
+        agent_list = Agent.objects.filter(Q(name__icontains=search) | Q(ip__contains=search) | Q(health__icontains=search)).order_by("-registered_at")
 
+    paginator = Paginator(agent_list, 25)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/agents.html", {"page_obj": page_obj})    
+    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search})    
 
 @login_required
 def alerts(request):
-    agent_list = Alert.objects.order_by("-created_at")
-    paginator = Paginator(agent_list, 100)
+    alert_list = Alert.objects.order_by("-created_at")
+    search = request.GET.get("search")
+    if search is None:
+        alert_list = Alert.objects.order_by("-created_at")
+    else: 
+        if search.isnumeric():
+            alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(src__contains=search) | Q(protocol__icontains=search) | Q(dst__contains=search) | Q(srcp=search) | Q(dstp=search) | Q(agent__name__icontains=search)).order_by("-created_at")
+        else:
+            alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(src__contains=search) | Q(protocol__icontains=search) | Q(dst__contains=search) | Q(agent__name__icontains=search)).order_by("-created_at")
+
+    paginator = Paginator(alert_list, 100)
 
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj})    
+    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search})    
