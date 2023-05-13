@@ -20,6 +20,9 @@
         <li class="page-item">
             <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-rewind"></i></a>
         </li>
+        {% if page_obj.previous_page_number|add:"-1" >= 1 %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number|add:'-1' }}">{{ page_obj.previous_page_number|add:"-1" }}</a></li>
+        {% endif %}
         <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a></li>
         {% endif %}
         <li class="page-item active" aria-current="page">
@@ -27,6 +30,9 @@
         </li>
         {% if page_obj.has_next %}
         <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a></li>
+        {% if page_obj.next_page_number|add:1 <= page_obj.paginator.num_pages %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number|add:1 }}">{{ page_obj.next_page_number|add:1 }}</a></li>
+        {% endif %}
         <li class="page-item">
             <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-fast-forward"></i></a>
         </li>
@@ -34,11 +40,11 @@
             <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"><i class="bi bi-skip-forward"></i></a>
         </li>
         {% endif %}
+        <span class="ms-3 my-auto">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>        
     </ul>
 </nav>
-<span>
-    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-</span>
 <table class="table table-hover">
     <thead>
         <tr>
