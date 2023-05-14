@@ -6,6 +6,7 @@ class Agent(models.Model):
     name = models.CharField(max_length=200)
     ip = models.GenericIPAddressField(unique=True)
     health = models.URLField(max_length=200)
+    status = models.CharField(max_length=20)
     registered_at = models.DateTimeField(auto_now_add=True)
 
 class Alert(models.Model):
