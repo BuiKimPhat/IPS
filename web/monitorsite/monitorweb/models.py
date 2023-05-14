@@ -3,7 +3,7 @@ from django.db import models
 class Agent(models.Model):
     def __str__(self):
         return self.name
-    name = models.CharField(max_length=200)
+    name = models.CharField(unique=True, max_length=200)
     ip = models.GenericIPAddressField(unique=True)
     health = models.URLField(max_length=200)
     status = models.CharField(max_length=20)
