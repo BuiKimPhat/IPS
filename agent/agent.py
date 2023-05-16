@@ -119,7 +119,7 @@ async def send_metrics(websocket_uri):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
     parser.add_argument('websocket_uri', type=str, help='WebSocket server URI')
-    parser.add_argument('agent_id', type=str, help='Agent ID to register with the WebSocket server')
+    parser.add_argument('agent_name', type=str, help='Agent ID to register with the WebSocket server')
     args = parser.parse_args()
 
     asyncio.get_event_loop().run_until_complete(connect_to_server(args.websocket_uri, args.agent_id))
