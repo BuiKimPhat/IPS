@@ -6,14 +6,14 @@ import psutil
 import time
 import subprocess
 
-async def connect_to_server(websocket_uri, agent_id):
-    async with websockets.connect(websocket_uri) as websocket:
+async def connect_to_server(websocket_uri, agent_name):
+    async with websockets.connect(websocket_uri+agent_name+"/") as websocket:
         # Register the agent by sending a JSON-encoded message with its ID
         message = {
-            'agent_id': agent_id
+            'agent_name': agent_name
         }
         await websocket.send(json.dumps(message))
-        print(f"Registered agent '{agent_id}' with server at {websocket_uri}")
+        print(f"Registered agent '{agent_name}' with server at {websocket_uri}")
 
 async def setup_modsecurity():
     # Set up ModSecurity by running a shell script or executing API calls
@@ -118,10 +118,18 @@ async def send_metrics(websocket_uri):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
-    parser.add_argument('websocket_uri', type=str, help='WebSocket server URI')
-    parser.add_argument('agent_name', type=str, help='Agent ID to register with the WebSocket server')
+    parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server URI', default='ws://10.0.101.69/ws/ips/')
+    parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
+    parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
 
-    asyncio.get_event_loop().run_until_complete(connect_to_server(args.websocket_uri, args.agent_id))
-    asyncio.get_event_loop().run_until_complete(setup_modsecurity())
-    asyncio.get_event_loop().run_until_complete(send_metrics(args.websocket_uri))
+    # Register the agent with the server
+    asyncio.run(connect_to_server(args.server, args.name))
+
+    # Set up ModSecurity (if specified)
+    if args.setup:
+        setup_modsecurity()
+        exit()
+
+    # Send data to the server
+    asyncio.run(send_data(args.server))
