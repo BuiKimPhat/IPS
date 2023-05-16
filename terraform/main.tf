@@ -75,6 +75,7 @@ module "monitor_ec2" {
   key_name               = var.key_name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.ssh_http.id]
+  associate_public_ip_address = true
   subnet_id              = module.ips_vpc.public_subnets[0]
   user_data_base64 = var.monitor_user_data_64
   tags = {
@@ -93,6 +94,7 @@ module "agent1_ec2" {
   key_name               = var.key_name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.ssh_http.id]
+  associate_public_ip_address = true
   subnet_id              = module.ips_vpc.public_subnets[1]
   user_data_base64 = var.agent_user_data_64
   tags = {
