@@ -32,7 +32,7 @@ data "http" "my_public_ip" {
   url = "https://icanhazip.com" # fetch my public IP
 }
 resource "aws_security_group" "ssh_http" {
-  name        = "ssh_http"
+  name        = "ips-ssh_http"
   description = "Allow SSH and HTTP inbound traffic"
   vpc_id      = module.ips_vpc.vpc_id
   ingress {
@@ -64,12 +64,14 @@ resource "aws_security_group" "ssh_http" {
 }
 
 # Create EC2 intances
+
+# Monitor EC2
 module "monitor_ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
-  name = "monitor-ec2"
+  name = "ips-monitor-ec2"
   ami                    = var.ami
-  instance_type          = var.ec2_type
+  instance_type          = var.monitor_ec2_type
   key_name               = var.key_name
   monitoring             = true
   vpc_security_group_ids = [aws_security_group.ssh_http.id]
@@ -81,10 +83,20 @@ module "monitor_ec2" {
     ProjectName = "IPS"
   }
 }
-resource "aws_eip" "monitor_ec2_public_ip" {
-  instance = module.monitor_ec2.id
-  vpc      = true
+
+module "agent1_ec2" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 3.0"
+  name = "ips-agent1-ec2"
+  ami                    = var.ami
+  instance_type          = var.agent_ec2_type
+  key_name               = var.key_name
+  monitoring             = true
+  vpc_security_group_ids = [aws_security_group.ssh_http.id]
+  subnet_id              = module.ips_vpc.public_subnets[1]
+  user_data_base64 = var.agent_user_data_64
   tags = {
+    Environment = "Dev"
     Category = "EC2"
     ProjectName = "IPS"
   }
