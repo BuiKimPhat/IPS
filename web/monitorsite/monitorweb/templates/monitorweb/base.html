@@ -10,11 +10,14 @@
         integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
         crossorigin="anonymous"></script>
     <style>
-        #collapseBtn {
+        .sidebar-nav {
             -webkit-transition: all 0.4s ease-in-out;
             -moz-transition: all 0.4s ease-in-out;
             -o-transition: all 0.4s ease-in-out;
             transition: all 0.4s ease-in-out;
+        }
+        .sidebar-nav:hover {
+            border: 1px solid black;
         }
     </style>
 
@@ -28,27 +31,27 @@
         <div class="pt-5">
             <ul class="list-unstyled">
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:index' %}" title="Dashboard">
+                    <a class="btn w-100 fw-bold sidebar-nav" href="{% url 'monitorweb:index' %}" title="Dashboard">
                         <i class="bi bi-speedometer"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:agents' %}" title="Agents">
+                    <a class="btn w-100 fw-bold sidebar-nav" href="{% url 'monitorweb:agents' %}" title="Agents">
                         <i class="bi bi-pc-display-horizontal"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:alerts' %}" title="Alerts">
+                    <a class="btn w-100 fw-bold sidebar-nav" href="{% url 'monitorweb:alerts' %}" title="Alerts">
                         <i class="bi bi-exclamation-triangle"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <a class="btn w-100 fw-bold" href="{% url 'monitorweb:logout' %}" title="Logout">
+                    <a class="btn w-100 fw-bold sidebar-nav" href="{% url 'monitorweb:logout' %}" title="Logout">
                         <i class="bi bi-box-arrow-left"></i>
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <button id="collapseBtn" class="btn w-100" title="Expand" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
+                    <button id="collapseBtn" class="btn w-100 sidebar-nav" title="Expand" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
                         aria-expanded="false" aria-controls="sidebarCollapse">
                         <i class="bi bi-fast-forward"></i>
                     </button>
@@ -58,15 +61,15 @@
         <div class="pt-5">
             <div class="collapse collapse-horizontal" id="sidebarCollapse">
                 <ul class="list-unstyled d-block" style="width: 130px;">
-                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
+                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start sidebar-nav"
                             href="{% url 'monitorweb:index' %}">Dashboard</a></li>
-                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
+                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start sidebar-nav"
                             href="{% url 'monitorweb:agents' %}">Agents</a></li>
-                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
+                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start sidebar-nav"
                             href="{% url 'monitorweb:alerts' %}">Alerts</a></li>
-                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start"
+                    <li class="ml-0 w-100 pl-0 py-3"><a class="btn w-100 text-start sidebar-nav"
                             href="{% url 'monitorweb:logout' %}">Logout</a></li>
-                    <li class="ml-0 w-100 pl-0 py-3"><button class="btn w-100 text-start" type="button"
+                    <li class="ml-0 w-100 pl-0 py-3"><button class="btn w-100 text-start sidebar-nav" type="button"
                             data-bs-toggle="collapse" data-bs-target="#sidebarCollapse" aria-expanded="false"
                             aria-controls="sidebarCollapse">Collapse</button></li>
                 </ul>
