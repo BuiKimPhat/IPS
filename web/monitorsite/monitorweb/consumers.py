@@ -1,39 +1,34 @@
 import json
 
-from asgiref.sync import async_to_sync
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 
-class IPSConsumer(WebsocketConsumer):
-    def connect(self):
+class IPSConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
-        self.agent_group_name = "ips_%s" % self.agent_name
+        self.agent_group_name = "ipsgroup_%s" % self.agent_name
 
-        # Join room group
-        async_to_sync(self.channel_layer.group_add)(
-            self.agent_group_name, self.channel_name
-        )
+        # Join agent group
+        await self.channel_layer.group_add(self.agent_group_name, self.channel_name)
 
-        self.accept()
+        await self.accept()
 
-    def disconnect(self, close_code):
-        # Leave room group
-        async_to_sync(self.channel_layer.group_discard)(
-            self.agent_group_name, self.channel_name
-        )
+    async def disconnect(self, close_code):
+        # Leave agent group
+        await self.channel_layer.group_discard(self.agent_group_name, self.channel_name)
 
     # Receive message from WebSocket
-    def receive(self, text_data):
+    async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        data = text_data_json["data"]
 
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.agent_group_name, {"type": "chat_message", "message": message}
+        # Send message to agent group
+        await self.channel_layer.group_send(
+            self.agent_group_name, {"type": "chart_update", "data": data}
         )
 
-    # Receive message from room group
-    def chat_message(self, event):
-        message = event["message"]
+    # Receive message from agent group
+    async def agent_metrics(self, event):
+        data = event["data"]
 
         # Send message to WebSocket
-        self.send(text_data=json.dumps({"message": message}))
+        await self.send(text_data=json.dumps({"data": data}))
