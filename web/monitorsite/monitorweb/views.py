@@ -37,7 +37,12 @@ def logout(request):
 @login_required
 def index(request):
     context = {}
-    return render(request, "monitorweb/index.html", context)     
+    return render(request, "monitorweb/index.html", context)    
+
+@login_required
+def agent_detail(request):
+    context = {}
+    return render(request, "monitorweb/agent_detail.html", context)  
 
 @login_required
 def agents(request):
