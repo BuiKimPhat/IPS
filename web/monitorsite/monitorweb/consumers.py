@@ -1,6 +1,7 @@
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import Agent
 
 class IPSConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -18,17 +19,76 @@ class IPSConsumer(AsyncWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        data = text_data_json["data"]
+        try:
+            text_data_json = json.loads(text_data)
+            print(text_data_json)
 
-        # Send message to agent group
-        await self.channel_layer.group_send(
-            self.agent_group_name, {"type": "chart_update", "data": data}
-        )
+            # Register agent
+            if text_data_json["type"] == "agent_register":
+                agent_name = text_data_json["agent_name"]
+                agent_ip = text_data_json["agent_ip"]
+                agent_health = text_data_json["agent_health"]
+
+                obj, created = await Agent.objects.aget_or_create(name=agent_name, ip=agent_ip, health=agent_health)
+                
+                # Send message to agent group
+                if created:
+                    await self.channel_layer.group_send(
+                        self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} has been registered successfully!"}
+                    )
+                else:
+                    await self.channel_layer.group_send(
+                        self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Agent {agent_name} was already registered. Please choose a different name for your agent."}
+                    )
+
+            # Metrics update
+            if text_data_json["type"] == "metrics_update":
+                cpu_percent = text_data_json["cpu_percent"]
+                mem_percent = text_data_json["mem_percent"]
+                disk_read = text_data_json["disk_read"]
+                disk_write = text_data_json["disk_write"]
+                net_out = text_data_json["net_out"]
+                net_in = text_data_json["net_in"]
+                # Send message to agent group
+                await self.channel_layer.group_send(
+                    self.agent_group_name, 
+                    {   
+                        "type": "metrics_update", 
+                        "cpu_percent": cpu_percent,
+                        "mem_percent": mem_percent,
+                        "disk_read": disk_read,
+                        "disk_write": disk_write,
+                        "net_out": net_out,
+                        "net_in": net_in
+                    }
+                )
+        except:
+            print("Unexpected error! Last message: ", text_data)
+
 
     # Receive message from agent group
-    async def agent_metrics(self, event):
-        data = event["data"]
+    async def agent_register(self, event):
+        # Register agent
+        message = event["message"]
+        
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({"message": message}))
+
+    async def metrics_update(self, event):
+        # Real-time metrics
+        cpu_percent = event["cpu_percent"]
+        mem_percent = event["mem_percent"]
+        disk_read = event["disk_read"]
+        disk_write = event["disk_write"]
+        net_out = event["net_out"]
+        net_in = event["net_in"]
 
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({"data": data}))
+        await self.send(text_data=json.dumps({   
+                "cpu_percent": cpu_percent,
+                "mem_percent": mem_percent,
+                "disk_read": disk_read,
+                "disk_write": disk_write,
+                "net_out": net_out,
+                "net_in": net_in
+            }))
