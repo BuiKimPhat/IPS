@@ -6,103 +6,98 @@ import psutil
 import time
 import subprocess
 import re
+import socket
 
 class IPSAgent:
-    def __init__(self, server, name):
+    def __init__(self, server, name, interface, health):
         self.server = server
         self.name = name
         self.uri = self.server+self.name+"/"
-    async def connect_to_server():
+        self.ip = ""
+        self.health = health
+
+        for addr in psutil.net_if_addrs()[interface]:
+            if addr.family == socket.AF_INET:
+                self.ip = addr.address
+                break
+    async def connect_to_server(self):
         # Check agent_name
         if not re.search("^\w+$", self.name):
             raise Exception("Invalid agent name! (a-Z, 0-9, _)")
+        # Check agent_ip
+        
         async with websockets.connect(self.uri) as websocket:
             # Register the agent by sending a JSON-encoded message with its ID
             message = {
                 'type': 'agent_register',
-                'agent_name': self.name
+                'agent_name': self.name,
+                'agent_ip': self.ip,
+                'agent_health': self.health
             }
             await websocket.send(json.dumps(message))
             print(f"Registered agent '{self.name}' with server at {self.uri}")
 
-    async def setup_modsecurity():
+    async def setup_modsecurity(self):
         # Set up ModSecurity by running a shell script or executing API calls
         cmd = ['setup_modsecurity.sh']
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output.decode('utf-8'))
 
-    async def send_metrics():
+    async def send_metrics(self):
         async with websockets.connect(self.uri) as websocket:
-            # Initialize empty chart data and other variables
-            max_data_points = 50  # Keep up to 50 data points
-            chart_data = {
-                'labels': [],
-                'datasets': [{
-                    'label': 'CPU utilization',
-                    'data': [],
-                    'borderColor': 'rgb(75, 192, 192)',
-                    'tension': 0.1,
-                    'fill': False
-                }, {
-                    'label': 'Memory usage',
-                    'data': [],
-                    'borderColor': 'rgb(255, 99, 132)',
-                    'tension': 0.1,
-                    'fill': False
-                }]
-            }
-
-            # Create chart object
-            chart_message = {
-                'type': 'chart_update',
-                'data': chart_data
-            }
-            await websocket.send(json.dumps(chart_message))
-
+            last_sent_timestamp = 0
+            metrics_count = 0
+            cpu_percent = 0
+            mem_percent = 0
+            disk_read = 0
+            disk_write = 0
+            net_out = 0
+            net_in = 0
             # Keep track of the last line number read from the audit log file
-            last_line_num = 0
+            # last_line_num = 0
 
             while True:
                 try:
                     # Get CPU utilization and memory usage data
-                    cpu_percent = psutil.cpu_percent()
-                    mem_percent = psutil.virtual_memory().percent
+                    cpu_percent = cpu_percent + psutil.cpu_percent()
+                    mem_percent = mem_percent + psutil.virtual_memory().percent
+                    disk_read = disk_read + psutil.disk_io_counters().read_count
+                    disk_write = disk_write + psutil.disk_io_counters().write_count
+                    net_out = net_out + psutil.net_io_counters().bytes_sent
+                    net_in = net_in + psutil.net_io_counters().bytes_recv
 
-                    # Add the data to the chart data arrays
-                    timestamp = int(time.time() * 1000)
-                    chart_data['labels'].append(timestamp)
-                    chart_data['datasets'][0]['data'].append(cpu_percent)
-                    chart_data['datasets'][1]['data'].append(mem_percent)
+                    timestamp = int(time.time())
+                    metrics_count = metrics_count + 1
 
-                    # Limit the length of the data arrays
-                    if len(chart_data['labels']) > max_data_points:
-                        chart_data['labels'] = chart_data['labels'][-max_data_points:]
-                        chart_data['datasets'][0]['data'] = chart_data['datasets'][0]['data'][-max_data_points:]
-                        chart_data['datasets'][1]['data'] = chart_data['datasets'][1]['data'][-max_data_points:]
-
-                    # Send chart updates to the server every 5 minutes
-                    elapsed_minutes = (chart_data['labels'][-1] - chart_data['labels'][0]) // (1000 * 60)
-                    if elapsed_minutes >= 5:
-                        chart_message = {
-                            'type': 'chart_update',
-                            'data': chart_data
+                    # Send metrics updates to the server every 2 minutes
+                    elapsed_seconds = timestamp - last_sent_timestamp
+                    if elapsed_seconds >= 120:
+                        # Construct a JSON message with the data
+                        message = {
+                            'type': 'metrics_update',  # Use a custom message type for metrics updates
+                            'cpu_percent': cpu_percent / metrics_count,
+                            'mem_percent': mem_percent / metrics_count,
+                            'disk_read': disk_read / metrics_count,
+                            'disk_write': disk_write / metrics_count,
+                            'net_out': net_out / metrics_count,
+                            'net_in': net_in / metrics_count,
+                            'timestamp': timestamp,
                         }
-                        await websocket.send(json.dumps(chart_message))
-                        chart_data['labels'] = [chart_data['labels'][-1]]
-                        chart_data['datasets'][0]['data'] = [chart_data['datasets'][0]['data'][-1]]
-                        chart_data['datasets'][1]['data'] = [chart_data['datasets'][1]['data'][-1]]
 
-                    # Construct a JSON message with the data
-                    message = {
-                        'type': 'metrics_update',  # Use a custom message type for metrics updates
-                        'cpu_percent': cpu_percent,
-                        'mem_percent': mem_percent,
-                        'timestamp': timestamp,
-                    }
+                        # Send the message to the server
+                        print("Sending: ", message)
+                        await websocket.send(json.dumps(message))
 
-                    # Send the message to the server
-                    await websocket.send(json.dumps(message))
+                        last_sent_timestamp = timestamp
+                        metrics_count = 0
+                        cpu_percent = 0
+                        mem_percent = 0
+                        disk_read = 0
+                        disk_write = 0
+                        net_out = 0
+                        net_in = 0
+
 
                     # Check the ModSecurity audit log for new security events
                     # with open('/var/log/modsec_audit.log') as f:
@@ -129,19 +124,21 @@ class IPSAgent:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
     parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server URI', default='ws://10.0.101.69/ws/ips/')
+    parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check)', default='NOCHECK')
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
+    parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
     parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
 
-    agent = IPSAgent(args.server, args.name)
+    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
 
     # Register the agent with the server
     asyncio.run(agent.connect_to_server())
+
+    # Send metrics to the server
+    asyncio.run(agent.send_metrics())
 
     # Set up ModSecurity (if specified)
     if args.setup:
         agent.setup_modsecurity()
         exit()
-
-    # Send data to the server
-    asyncio.run(agent.send_metrics())
