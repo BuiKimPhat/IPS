@@ -100,9 +100,9 @@
     </thead>
     <tbody>
         {% for agent in page_obj %}
-        <tr style="cursor: pointer;"><a href="#">
-                <th scope="row">{{agent.id}}</th>
-                <td>{{agent.name}}</td>
+        <tr>
+                <th scope="row"><a href="{% url 'monitorweb:agent_detail' agent.id %}" class="text-reset">{{agent.id}}</a></th>
+                <td><a href="{% url 'monitorweb:agent_detail' agent.id %}" class="text-reset">{{agent.name}}</a></td>
                 <td class="text-success"><i class="bi bi-check-circle"></i> Healthy</td>
                 <td>{{agent.ip}}</td>
                 <td>{{agent.health}}</td>

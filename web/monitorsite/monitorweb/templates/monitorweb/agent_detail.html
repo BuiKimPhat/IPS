@@ -2,21 +2,24 @@
 
 {% block head %}
 <title>Agent - IPS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% load static %}
 {% endblock head %}
 
 {% block content %}
 <div class="d-flex w-100 align-items-center">
-    <h1 class="display-6"><i><b>IPS</b> Agent</i></h1>
+    <h1 class="display-6"><i><b>IPS</b> Agent {{agent.name}}</i></h1>
     <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
 </div>
+{{agent.name|json_script:"agent_name"}}
 
-<div class="d-flex">
-    <canvas id="cpu"></canvas>
-    <canvas id="memory"></canvas>
-    <canvas id="diskRead"></canvas>
-    <canvas id="diskWrite"></canvas>
-    <canvas id="netIn"></canvas>
-    <canvas id="netOut"></canvas>
+<div class="d-flex flex-wrap w-100">
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="cpu"></canvas></div>
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="memory"></canvas></div>
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="diskRead"></canvas></div>
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="diskWrite"></canvas></div>
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="netIn"></canvas></div>
+    <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="netOut"></canvas></div>
 </div>
 <script>
     // CPU
@@ -33,6 +36,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -55,6 +59,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -77,6 +82,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -87,7 +93,7 @@
 
     // Disk write
     const diskWriteChart = document.getElementById('diskWrite');
-    new Chart(diskReadChart, {
+    new Chart(diskWriteChart, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -99,6 +105,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -121,6 +128,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -143,6 +151,7 @@
             }]
         },
         options: {
+            aspectRatio: 1,
             scales: {
                 y: {
                     beginAtZero: true
@@ -150,6 +159,8 @@
             }
         }
     });
-
 </script>
+<script src="chart_action.js"></script>
+<script src="socket.js"></script>
+
 {% endblock content %}

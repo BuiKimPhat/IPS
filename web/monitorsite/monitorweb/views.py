@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, logout as logout_func, login as login_func
 from django.core.paginator import Paginator
@@ -40,8 +40,9 @@ def index(request):
     return render(request, "monitorweb/index.html", context)    
 
 @login_required
-def agent_detail(request):
-    context = {}
+def agent_detail(request, agent_id):
+    agent = get_object_or_404(Agent, pk=agent_id)
+    context = {"agent": agent}
     return render(request, "monitorweb/agent_detail.html", context)  
 
 @login_required
