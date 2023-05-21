@@ -3,7 +3,6 @@
 {% block head %}
 <title>Agent - IPS</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% load static %}
 {% endblock head %}
 
 {% block content %}
@@ -11,7 +10,7 @@
     <h1 class="display-6"><i><b>IPS</b> Agent {{agent.name}}</i></h1>
     <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
 </div>
-{{agent.name|json_script:"agent_name"}}
+{{agent.name|json_script:"agent-name"}}
 
 <div class="d-flex flex-wrap w-100">
     <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="cpu"></canvas></div>
@@ -23,8 +22,8 @@
 </div>
 <script>
     // CPU
-    const cpuchart = document.getElementById('cpu');
-    new Chart(cpuchart, {
+    const cpuchartctx = document.getElementById('cpu');
+    const cpuchart = new Chart(cpuchartctx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -46,8 +45,8 @@
     });
 
     // Memory
-    const memchart = document.getElementById('memory');
-    new Chart(memchart, {
+    const memchartctx = document.getElementById('memory');
+    const memchart = new Chart(memchartctx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -69,8 +68,8 @@
     });
 
     // Disk read
-    const diskReadChart = document.getElementById('diskRead');
-    new Chart(diskReadChart, {
+    const diskReadChartCtx = document.getElementById('diskRead');
+    const diskReadChart = new Chart(diskReadChartCtx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -92,8 +91,8 @@
     });
 
     // Disk write
-    const diskWriteChart = document.getElementById('diskWrite');
-    new Chart(diskWriteChart, {
+    const diskWriteChartCtx = document.getElementById('diskWrite');
+    const diskWriteChart = new Chart(diskWriteChartCtx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -115,8 +114,8 @@
     });
 
     // Network in
-    const netinchart = document.getElementById('netIn');
-    new Chart(netinchart, {
+    const netinchartctx = document.getElementById('netIn');
+    const netinchart = new Chart(netinchartctx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -138,8 +137,8 @@
     });
 
     // Network in
-    const netoutchart = document.getElementById('netOut');
-    new Chart(netoutchart, {
+    const netoutchartctx = document.getElementById('netOut');
+    const netoutchart = new Chart(netoutchartctx, {
         type: 'line',
         data: {
             labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
@@ -159,8 +158,19 @@
             }
         }
     });
+
+    const charts = {
+        cpu: cpuchart,
+        memory: memchart,
+        diskread: diskReadChart,
+        diskwrite: diskWriteChart,
+        netin: netinchart,
+        netout: netoutchart
+    };
 </script>
-<script src="chart_action.js"></script>
-<script src="socket.js"></script>
+
+{% load static %}
+<script src="{% static 'monitorweb/chart_action.js' %}"></script>
+<script src="{% static 'monitorweb/socket.js' %}"></script>
 
 {% endblock content %}

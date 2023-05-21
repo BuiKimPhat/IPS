@@ -1,5 +1,5 @@
-const fetch_metrics = () => {
-    const agent_name = JSON.parse(document.getElementById('room-name').textContent);
+const fetch_metrics = (charts) => {
+    const agent_name = JSON.parse(document.getElementById('agent-name').textContent);
     const ws = new WebSocket('ws://'+window.location.host+'/ws/ips/'+agent_name+"/");
     ws.onopen = () =>{
       console.log('Connected to Websocket server.')
@@ -21,6 +21,6 @@ const fetch_metrics = () => {
       console.error('Socket encountered error: ', err.message, '\nClosing socket.');
       ws.close();
     };
-  }
+  };
   
-  connect();
+fetch_metrics(charts);

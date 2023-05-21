@@ -37,9 +37,15 @@ class IPSConsumer(AsyncWebsocketConsumer):
                         self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} has been registered successfully!"}
                     )
                 else:
-                    await self.channel_layer.group_send(
-                        self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Agent {agent_name} was already registered. Please choose a different name for your agent."}
-                    )
+                    if agent_ip == obj.ip and agent_name != obj.name:
+                        await self.channel_layer.group_send(
+                            self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} was already registered with name '{obj.name}'."}
+                        )
+                    if agent_name == obj.name and agent_ip != obj.ip:
+                        await self.channel_layer.group_send(
+                            self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Agent name '{agent_name}' was already registered. Please choose a different name for your agent."}
+                        )
+
 
             # Metrics update
             if text_data_json["type"] == "metrics_update":
@@ -49,6 +55,7 @@ class IPSConsumer(AsyncWebsocketConsumer):
                 disk_write = text_data_json["disk_write"]
                 net_out = text_data_json["net_out"]
                 net_in = text_data_json["net_in"]
+                timestamp = text_data_json["timestamp"]
                 # Send message to agent group
                 await self.channel_layer.group_send(
                     self.agent_group_name, 
@@ -59,7 +66,8 @@ class IPSConsumer(AsyncWebsocketConsumer):
                         "disk_read": disk_read,
                         "disk_write": disk_write,
                         "net_out": net_out,
-                        "net_in": net_in
+                        "net_in": net_in,
+                        "timestamp": timestamp
                     }
                 )
         except:
@@ -82,6 +90,7 @@ class IPSConsumer(AsyncWebsocketConsumer):
         disk_write = event["disk_write"]
         net_out = event["net_out"]
         net_in = event["net_in"]
+        net_in = event["timestamp"]
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({   
@@ -90,5 +99,6 @@ class IPSConsumer(AsyncWebsocketConsumer):
                 "disk_read": disk_read,
                 "disk_write": disk_write,
                 "net_out": net_out,
-                "net_in": net_in
+                "net_in": net_in,
+                "timestamp": timestamp,
             }))

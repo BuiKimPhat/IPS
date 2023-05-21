@@ -94,7 +94,7 @@ DATABASES = {
         'USER': 'ips_admin',
         'PASSWORD': 'Qx2b&Gy0N9R1*uEn8N7PM@Juw*!O8T',
         'HOST': 'localhost'
-    }
+    },
 }
 
 
