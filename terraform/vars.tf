@@ -29,7 +29,7 @@ variable "ami" {
 }
 variable "monitor_ec2_type" {
     type = string
-    default = "t3.small"
+    default = "t3.medium"
 }
 variable "monitor_user_data_64" {
     type = string
