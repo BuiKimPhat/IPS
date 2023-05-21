@@ -74,7 +74,7 @@ resource "aws_security_group" "ssh_http" {
 
 # Monitor EC2
 module "monitor_ec2" {
-  
+
   create_spot_instance = true
   spot_price           = "0.20"
   spot_type            = "persistent"
