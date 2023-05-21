@@ -35,7 +35,8 @@ class IPSAgent:
                 'agent_health': self.health
             }
             await websocket.send(json.dumps(message))
-            print(f"Registered agent '{self.name}' with server at {self.uri}")
+            message = await websocket.recv()
+            print(json.loads(message)["message"])
 
     async def setup_modsecurity(self):
         # Set up ModSecurity by running a shell script or executing API calls
@@ -45,81 +46,87 @@ class IPSAgent:
         print(output.decode('utf-8'))
 
     async def send_metrics(self):
-        async with websockets.connect(self.uri) as websocket:
-            last_sent_timestamp = 0
-            metrics_count = 0
-            cpu_percent = 0
-            mem_percent = 0
-            disk_read = 0
-            disk_write = 0
-            net_out = 0
-            net_in = 0
-            # Keep track of the last line number read from the audit log file
-            # last_line_num = 0
+        connected = False
+        while not connected:
+            try:
+                async with websockets.connect(self.uri) as websocket:
+                    connected = True
+                    last_sent_timestamp = 0
+                    metrics_count = 0
+                    cpu_percent = 0
+                    mem_percent = 0
+                    disk_read = 0
+                    disk_write = 0
+                    net_out = 0
+                    net_in = 0
+                    # Keep track of the last line number read from the audit log file
+                    # last_line_num = 0
 
-            while True:
-                try:
-                    # Get CPU utilization and memory usage data
-                    cpu_percent = cpu_percent + psutil.cpu_percent()
-                    mem_percent = mem_percent + psutil.virtual_memory().percent
-                    disk_read = disk_read + psutil.disk_io_counters().read_count
-                    disk_write = disk_write + psutil.disk_io_counters().write_count
-                    net_out = net_out + psutil.net_io_counters().bytes_sent
-                    net_in = net_in + psutil.net_io_counters().bytes_recv
+                    while True:
+                        # Get CPU utilization and memory usage data
+                        cpu_percent = cpu_percent + psutil.cpu_percent()
+                        mem_percent = mem_percent + psutil.virtual_memory().percent
+                        disk_read = disk_read + psutil.disk_io_counters().read_count
+                        disk_write = disk_write + psutil.disk_io_counters().write_count
+                        net_out = net_out + psutil.net_io_counters().bytes_sent
+                        net_in = net_in + psutil.net_io_counters().bytes_recv
 
-                    timestamp = int(time.time())
-                    metrics_count = metrics_count + 1
+                        timestamp = int(time.time())
+                        metrics_count = metrics_count + 1
 
-                    # Send metrics updates to the server every 2 minutes
-                    elapsed_seconds = timestamp - last_sent_timestamp
-                    if elapsed_seconds >= 120:
-                        # Construct a JSON message with the data
-                        message = {
-                            'type': 'metrics_update',  # Use a custom message type for metrics updates
-                            'cpu_percent': cpu_percent / metrics_count,
-                            'mem_percent': mem_percent / metrics_count,
-                            'disk_read': disk_read / metrics_count,
-                            'disk_write': disk_write / metrics_count,
-                            'net_out': net_out / metrics_count,
-                            'net_in': net_in / metrics_count,
-                            'timestamp': timestamp,
-                        }
+                        # Send metrics updates to the server every 2 minutes
+                        elapsed_seconds = timestamp - last_sent_timestamp
+                        if elapsed_seconds >= 120:
+                            # Construct a JSON message with the data
+                            message = {
+                                'type': 'metrics_update',  # Use a custom message type for metrics updates
+                                'cpu_percent': cpu_percent / metrics_count,
+                                'mem_percent': mem_percent / metrics_count,
+                                'disk_read': disk_read / metrics_count,
+                                'disk_write': disk_write / metrics_count,
+                                'net_out': net_out / metrics_count,
+                                'net_in': net_in / metrics_count,
+                                'timestamp': timestamp,
+                            }
 
-                        # Send the message to the server
-                        print("Sending: ", message)
-                        await websocket.send(json.dumps(message))
+                            # Send the message to the server
+                            print("Sending: ", message)
+                            await websocket.send(json.dumps(message))
 
-                        last_sent_timestamp = timestamp
-                        metrics_count = 0
-                        cpu_percent = 0
-                        mem_percent = 0
-                        disk_read = 0
-                        disk_write = 0
-                        net_out = 0
-                        net_in = 0
+                            last_sent_timestamp = timestamp
+                            metrics_count = 0
+                            cpu_percent = 0
+                            mem_percent = 0
+                            disk_read = 0
+                            disk_write = 0
+                            net_out = 0
+                            net_in = 0
+                        
+                        # Sleep for 1 second before sending the next message
+                        await asyncio.sleep(1)
 
 
-                    # Check the ModSecurity audit log for new security events
-                    # with open('/var/log/modsec_audit.log') as f:
-                    #     f.seek(last_line_num)
-                    #     for line in f:
-                    #         if 'Message: Access denied' in line:
-                    #             # Construct a JSON message for the attack
-                    #             attack_message = {
-                    #                 'type': 'attack_detected',
-                    #                 'timestamp': timestamp
-                    #             }
 
-                    #             # Send the message to the server using the sendMessage function
-                    #             sendMessage(attack_message)
+                        # Check the ModSecurity audit log for new security events
+                        # with open('/var/log/modsec_audit.log') as f:
+                        #     f.seek(last_line_num)
+                        #     for line in f:
+                        #         if 'Message: Access denied' in line:
+                        #             # Construct a JSON message for the attack
+                        #             attack_message = {
+                        #                 'type': 'attack_detected',
+                        #                 'timestamp': timestamp
+                        #             }
 
-                    #     last_line_num = f.tell()
+                        #             # Send the message to the server using the sendMessage function
+                        #             sendMessage(attack_message)
 
-                except Exception as e:
-                    print("Error:", e)
+                        #     last_line_num = f.tell()
 
-                # Sleep for 1 second before sending the next message
-                await asyncio.sleep(1)
+            except Exception as e:
+                connected = False
+                print("Error: ", e)
+                await asyncio.sleep(5) # 5 seconds delay before attempting to reconnect
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
