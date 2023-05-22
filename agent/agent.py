@@ -15,6 +15,7 @@ class IPSAgent:
         self.uri = self.server+self.name+"/"
         self.ip = ""
         self.health = health
+        self.register_error = False
 
         for addr in psutil.net_if_addrs()[interface]:
             if addr.family == socket.AF_INET:
@@ -23,9 +24,10 @@ class IPSAgent:
     async def connect_to_server(self):
         # Check agent_name
         if not re.search("^\w+$", self.name):
+            self.error = True
             raise Exception("Invalid agent name! (a-Z, 0-9, _)")
-        # Check agent_ip
         
+        self.register_error = False
         async with websockets.connect(self.uri) as websocket:
             # Register the agent by sending a JSON-encoded message with its ID
             message = {
@@ -35,8 +37,14 @@ class IPSAgent:
                 'agent_health': self.health
             }
             await websocket.send(json.dumps(message))
-            message = await websocket.recv()
-            # print(json.loads(message)["message"])
+            message_raw = await websocket.recv()
+            message = json.loads(message_raw)["message"]
+            if message[:5] == "ERROR":
+                self.register_error = True
+                raise Exception(message[6:])
+
+            self.register_error = False
+            print(message)
 
     async def setup_modsecurity(self):
         # Set up ModSecurity by running a shell script or executing API calls
@@ -50,6 +58,7 @@ class IPSAgent:
         while not connected:
             try:
                 async with websockets.connect(self.uri) as websocket:
+                    print("Connection established. Sending metric...")
                     connected = True
                     last_sent_timestamp = 0
                     metrics_count = 0
@@ -90,7 +99,7 @@ class IPSAgent:
                             }
 
                             # Send the message to the server
-                            print("Sending: ", message)
+                            # print("Sending: ", message)
                             await websocket.send(json.dumps(message))
 
                             last_sent_timestamp = timestamp
@@ -131,22 +140,24 @@ class IPSAgent:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
     parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server URI', default='ws://10.0.101.69/ws/ips/')
-    parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check)', default='NOCHECK')
+    parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check for the web server)', default='None')
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
-    parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=30)
+    parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=20)
     parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
-
-    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
-
-    # Register the agent with the server
-    asyncio.run(agent.connect_to_server())
-
-    # Send metrics to the server
-    asyncio.run(agent.send_metrics(args.metrics_interval))
 
     # Set up ModSecurity (if specified)
     if args.setup:
         agent.setup_modsecurity()
         exit()
+
+    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
+
+    try:
+        # Register the agent with the server
+        asyncio.run(agent.connect_to_server())
+        # Send metrics to the server
+        asyncio.run(agent.send_metrics(args.metrics_interval))
+    except KeyboardInterrupt:
+        print("Stopping agent...")
