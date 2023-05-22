@@ -36,7 +36,7 @@ class IPSAgent:
             }
             await websocket.send(json.dumps(message))
             message = await websocket.recv()
-            print(json.loads(message)["message"])
+            # print(json.loads(message)["message"])
 
     async def setup_modsecurity(self):
         # Set up ModSecurity by running a shell script or executing API calls
@@ -45,7 +45,7 @@ class IPSAgent:
         output, error = process.communicate()
         print(output.decode('utf-8'))
 
-    async def send_metrics(self):
+    async def send_metrics(self, metrics_interval):
         connected = False
         while not connected:
             try:
@@ -74,9 +74,9 @@ class IPSAgent:
                         timestamp = int(time.time())
                         metrics_count = metrics_count + 1
 
-                        # Send metrics updates to the server every 2 minutes
+                        # Send metrics updates to the server every metrcis_interval
                         elapsed_seconds = timestamp - last_sent_timestamp
-                        if elapsed_seconds >= 120:
+                        if elapsed_seconds >= metrics_interval:
                             # Construct a JSON message with the data
                             message = {
                                 'type': 'metrics_update',  # Use a custom message type for metrics updates
@@ -134,6 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check)', default='NOCHECK')
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
+    parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=30)
     parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
 
@@ -143,7 +144,7 @@ if __name__ == '__main__':
     asyncio.run(agent.connect_to_server())
 
     # Send metrics to the server
-    asyncio.run(agent.send_metrics())
+    asyncio.run(agent.send_metrics(args.metrics_interval))
 
     # Set up ModSecurity (if specified)
     if args.setup:
