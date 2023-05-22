@@ -7,10 +7,35 @@
 
 {% block content %}
 <div class="d-flex w-100 align-items-center">
-    <h1 class="display-6"><i><b>IPS</b> Agent {{agent.name}}</i></h1>
+    <h1 class="display-6"><i><b>IPS</b> Agent <b>{{agent.name}}</b></i></h1>
     <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
 </div>
 {{agent.name|json_script:"agent-name"}}
+
+<table class="my-3 table">
+    <tbody>
+        <tr>
+            <th scope="row">Agent name</th>
+            <td>{{agent.name}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Agent IP</th>
+            <td>{{agent.ip}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Status</th>
+            <td>Available</td>
+        </tr>
+        <tr>
+            <th scope="row">Health check URL</th>
+            <td>{{agent.health}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Registered at</th>
+            <td>{{agent.registered_at}}</td>
+        </tr>
+    </tbody>
+</table>
 
 <div class="d-flex flex-wrap w-100">
     <div class="m-auto" style="width: 30%; min-width: 150px;"><canvas id="cpu"></canvas></div>
@@ -26,21 +51,17 @@
     const cpuchart = new Chart(cpuchartctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'CPU usage (%)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -49,21 +70,17 @@
     const memchart = new Chart(memchartctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'Memory usage (%)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -72,21 +89,17 @@
     const diskReadChart = new Chart(diskReadChartCtx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'Disk reads (bytes)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -95,21 +108,17 @@
     const diskWriteChart = new Chart(diskWriteChartCtx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'Disk writes (bytes)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -118,21 +127,17 @@
     const netinchart = new Chart(netinchartctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'Network in (bytes)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -141,21 +146,17 @@
     const netoutchart = new Chart(netoutchartctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
+            labels: [],
             datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: 'Network out (bytes)',
+                data: [],
                 fill: false,
                 borderColor: 'rgb(75, 192, 192)'
             }]
         },
         options: {
-            aspectRatio: 1,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            animation: false,
+            aspectRatio: 1
         }
     });
 
@@ -170,7 +171,6 @@
 </script>
 
 {% load static %}
-<script src="{% static 'monitorweb/chart_action.js' %}"></script>
 <script src="{% static 'monitorweb/socket.js' %}"></script>
 
 {% endblock content %}
