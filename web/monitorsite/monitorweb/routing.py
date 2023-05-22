@@ -1,12 +1,14 @@
-from django.urls import re_path
+import threading
 
-from monitorweb.consumers import consumer_factory
+from django.urls import re_path
+from . import consumers
 from monitorweb.utils.status_check import AgentStatusUpdater
 
-status_updater = AgentStatusUpdater(30)
+# Create an instance of the AgentStatusUpdater class
+status_updater = AgentStatusUpdater()
 thread = threading.Thread(target=status_updater.start)
 thread.start()
 
 websocket_urlpatterns = [
-    re_path(r"ws/ips/(?P<agent_name>\w+)/$", consumers.IPSConsumer.as_asgi()),
+    re_path(r"ws/ips/(?P<agent_name>\w+)/$", consumers.IPSConsumer.as_asgi(), {'status_updater': status_updater}),
 ]

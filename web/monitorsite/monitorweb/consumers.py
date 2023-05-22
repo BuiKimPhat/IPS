@@ -1,17 +1,21 @@
 import json
 import time
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .models import Agent
+from django.db.models import Q
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 
 
-class IPSConsumer(AsyncWebsocketConsumer):
+class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         self.agent_group_name = "ipsgroup_%s" % self.agent_name
+        self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
+        self.validate = URLValidator()
 
         # Join agent group
         await self.channel_layer.group_add(self.agent_group_name, self.channel_name)
-
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -19,10 +23,10 @@ class IPSConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.agent_group_name, self.channel_name)
 
     # Receive message from WebSocket
-    async def receive(self, text_data):
+    async def receive_json(self, text_data_json):
         try:
-            text_data_json = json.loads(text_data)
-            # print(text_data_json)
+            # text_data_json = json.loads(text_data)
+            print(text_data_json)
 
             # Register agent
             if text_data_json["type"] == "agent_register":
@@ -31,23 +35,43 @@ class IPSConsumer(AsyncWebsocketConsumer):
                 agent_health = text_data_json["agent_health"]
                 agent_status = "Registered" # Agent is registered but not yet received any metrics/health checks
 
-                obj, created = await Agent.objects.aget_or_create(name=agent_name, ip=agent_ip, health=agent_health, status=agent_status)
+                # Validate health check URL
+                if agent_health != "None":
+                    try:
+                        self.validate(agent_health)
+                    except ValidationError:
+                        await self.channel_layer.group_send(
+                            self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Incorrect URL format for health check. Health check URL must be in a full URL form (example: https://www.example.com)."}
+                        )
+
+                try:
+                    obj =  await Agent.objects.aget(Q(name=agent_name) | Q(ip=agent_ip))
+                    created = True
+                except Agent.DoesNotExist:
+                    created = False
 
                 # Send message to agent group
-                if created:
+                if not created:
+                    new_agent = Agent(name=agent_name, ip=agent_ip, health=agent_health, status=agent_status)
+                    await new_agent.asave()
                     await self.channel_layer.group_send(
                         self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} has been registered successfully!"}
                     )
                 else:
+                    # Respond message
                     if agent_ip == obj.ip and agent_name != obj.name:
                         await self.channel_layer.group_send(
-                            self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} was already registered with name '{obj.name}'."}
+                            self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} was already registered with name '{obj.name}'. Messages will be sent to agent '{obj.name}'"}
                         )
                     if agent_name == obj.name and agent_ip != obj.ip:
                         await self.channel_layer.group_send(
                             self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Agent name '{agent_name}' was already registered. Please choose a different name for your agent."}
                         )
                     if agent_name == obj.name and agent_ip == obj.ip:
+                        # Update health check URL
+                        obj.health = agent_health
+                        await obj.asave()
+
                         await self.channel_layer.group_send(
                             self.agent_group_name, {"type": "agent_register", "message": f"Successfully connected to WebSocket server."}
                         )
@@ -75,10 +99,12 @@ class IPSConsumer(AsyncWebsocketConsumer):
                         "net_in": net_in,
                         "timestamp": timestamp
                     }
-                )                    
+                )
+                # Update last active time
+                self.status_updater.update_last_activity_time(self.agent_name)
 
-        except:
-            print("Unexpected error! Last message: ", text_data)
+        except Exception as e:
+            print("Unexpected error! ", e)
 
 
     # Receive message from agent group
@@ -87,7 +113,7 @@ class IPSConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({"type":"agent_register","message": message}))
+        await self.send_json({"type":"agent_register","message": message})
 
     async def metrics_update(self, event):
         # Real-time metrics
@@ -101,7 +127,7 @@ class IPSConsumer(AsyncWebsocketConsumer):
         timestamp = event["timestamp"]
 
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({   
+        await self.send_json({   
                 "type": "metrics_update",
                 "cpu_percent": cpu_percent,
                 "mem_percent": mem_percent,
@@ -110,9 +136,5 @@ class IPSConsumer(AsyncWebsocketConsumer):
                 "net_out": net_out,
                 "net_in": net_in,
                 "timestamp": timestamp,
-            }))
+            })
 
-def consumer_factory(scope):
-    agent_name = scope['url_route']['kwargs']['agent_name']
-    status_checker = scope['status_checker']
-    return MyConsumer.as_asgi()(scope, agent_name=agent_name, status_checker=status_checker)

@@ -14,7 +14,6 @@ const removeData = chart => {
 
 const updateChart = (chart, label, data) => {
   const max_data_point = 20;
-  console.log(chart.data.datasets[0].data.length)
   if (chart.data.datasets[0].data.length >= max_data_point) removeData(chart);
   addData(chart, label, data);
   chart.update();
