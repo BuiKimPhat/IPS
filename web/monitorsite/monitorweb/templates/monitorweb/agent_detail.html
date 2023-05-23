@@ -24,7 +24,17 @@
         </tr>
         <tr>
             <th scope="row">Status</th>
-            <td>{{agent.status}}</td>
+            {% if agent.status == "Healthy" %}
+            <td class="text-success">
+                <i class="bi bi-check-circle"></i>
+                {{agent.status}}
+            </td>
+            {% else %}
+            <td class="text-danger">
+                <i class="bi bi-exclamation-circle"></i>
+                {{agent.status}}
+            </td>
+            {% endif %}
         </tr>
         <tr>
             <th scope="row">Health check URL</th>
@@ -61,7 +71,12 @@
         },
         options: {
             animation: false,
-            aspectRatio: 1
+            aspectRatio: 1,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 
@@ -80,7 +95,12 @@
         },
         options: {
             animation: false,
-            aspectRatio: 1
+            aspectRatio: 1,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 

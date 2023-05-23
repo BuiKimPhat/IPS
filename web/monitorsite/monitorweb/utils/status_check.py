@@ -20,8 +20,12 @@ class AgentStatusUpdater:
 
                 # Health check URL
                 if agent.health != "None":
-                    r = requests.get(agent.health)
-                    healthy = True if r.status_code // 100 < 4 else False
+                    try:
+                        r = requests.get(agent.health)
+                        healthy = True if r.status_code // 100 < 4 else False
+                    except:
+                        healthy = False
+
                 if last_activity_time is None:
                     # No activity record exists for the agent - set it to active
                     self.last_activity_times[agent.name] = now
@@ -33,13 +37,12 @@ class AgentStatusUpdater:
                 else:
                     # Check if the agent has been inactive for too long
                     inactive_duration = now - last_activity_time
-                    if inactive_duration > self.unhealthy_threshold:
-                        # Agent has been inactive for too long - update its status to Unhealthy
+                    if inactive_duration > self.unhealthy_threshold or not healthy:
+                        # Agent has been inactive for too long and health check is bad - update its status to Unhealthy
                         agent.status = 'Unhealthy'
-                        agent.save()
-                    elif healthy:
+                    else:
                         agent.status = 'Healthy'
-                        agent.save()
+                    agent.save()
 
 
             # Sleep for 1 minute before checking again
