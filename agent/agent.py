@@ -136,6 +136,7 @@ class IPSAgent:
                 connected = False
                 print("Error: ", e)
                 await asyncio.sleep(5) # 5 seconds delay before attempting to reconnect
+                print("Reconnecting...")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
