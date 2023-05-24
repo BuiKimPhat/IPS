@@ -77,7 +77,7 @@ module "monitor_ec2" {
 
   create_spot_instance = true
   # Spot request specific attributes
-  spot_price                          = "0.03"
+  spot_price                          = "0.025"
   spot_wait_for_fulfillment           = true
   spot_type                           = "persistent"
 
