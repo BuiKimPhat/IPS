@@ -77,9 +77,10 @@ module "monitor_ec2" {
 
   create_spot_instance = true
   # Spot request specific attributes
-  spot_price                          = "0.025"
+  spot_price                          = "0.037"
   spot_wait_for_fulfillment           = true
   spot_type                           = "persistent"
+  spot_instance_interruption_behavior = "stop"
 
   source                      = "terraform-aws-modules/ec2-instance/aws"
   version                     = "~> 3.0"
