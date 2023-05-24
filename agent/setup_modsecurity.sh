@@ -21,3 +21,31 @@ make install
 
 # Install ModSecurity-nginx connector
 cd /opt && git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git
+
+# Build modsecurity modules for nginx
+wget http://nginx.org/download/nginx-1.18.0.tar.gz
+tar -xvzf nginx-1.18.0.tar.gz
+cd nginx-1.18.0
+./configure --add-dynamic-module=../ModSecurity-nginx --with-compat
+make modules
+mkdir /etc/nginx/modules
+cp objs/ngx_http_modsecurity_module.so /etc/nginx/modules
+
+# Load modsecurity module in nginx
+echo "load_module /etc/nginx/modules/ngx_http_modsecurity_module.so;" | tee -a /etc/nginx/nginx.conf
+
+# Setting Up OWASP-CRS
+git clone https://github.com/coreruleset/coreruleset /usr/local/modsecurity-crs
+mv /usr/local/modsecurity-crs/crs-setup.conf.example /usr/local/modsecurity-crs/crs-setup.conf
+mv /usr/local/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf.example /usr/local/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf
+
+# Configuring Modsecurity
+mkdir -p /etc/nginx/modsec
+cp /opt/ModSecurity/unicode.mapping /etc/nginx/modsec
+cp /opt/ModSecurity/modsecurity.conf-recommended /etc/nginx/modsec/modsecurity.conf
+sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/g' /etc/nginx/modsec/modsecurity.conf
+cat << EOF > /etc/nginx/modsec/main.conf
+Include /etc/nginx/modsec/modsecurity.conf
+Include /usr/local/modsecurity-crs/crs-setup.conf
+Include /usr/local/modsecurity-crs/rules/*.conf
+EOF
