@@ -1,21 +1,23 @@
 #!/bin/bash
 
-# Install dependencies
-apt-get update
-apt-get install -y nginx libmodsecurity3 libnginx-mod-http-modsecurity
+# Install nginx
+apt-get update -y
+apt-get install -y nginx
 
-# Copy ModSecurity configuration file to Nginx configuration directory
-cp /etc/nginx/modsec/modsecurity.conf-recommended /etc/nginx/modsec/modsecurity.conf
+# Install ModSecurity
+DEBIAN_FRONTEND=noninteractive apt-get install -y bison build-essential ca-certificates curl dh-autoreconf doxygen \
+  flex gawk git iputils-ping libcurl4-gnutls-dev libexpat1-dev libgeoip-dev liblmdb-dev \
+  libpcre3-dev libpcre++-dev libssl-dev libtool libxml2 libxml2-dev libyajl-dev locales \
+  lua5.3-dev pkg-config wget zlib1g-dev libgd-dev autoconf
 
-# Configure ModSecurity rules
-curl https://raw.githubusercontent.com/SpiderLabs/owasp-modsecurity-crs/v3.4/dev/crs-setup.conf.example > /etc/nginx/modsec/main.conf
-curl https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.4.0.tar.gz | tar -zxv
-mv owasp-modsecurity-crs-3.4.0 /etc/nginx/modsec/crs
-cp /etc/nginx/modsec/crs/crs-setup.conf.example /etc/nginx/modsec/crs/crs-setup.conf
+cd /opt && git clone https://github.com/SpiderLabs/ModSecurity
+cd ModSecurity
+git submodule init
+git submodule update
+./build.sh
+./configure
+make
+make install
 
-# Enable ModSecurity in NGINX
-sed -i 's/# include \/etc\/nginx\/modsec\/modsecurity.conf;/include \/etc\/nginx\/modsec\/modsecurity.conf;/' /etc/nginx/nginx.conf
-sed -i 's/# modsecurity_rules_file \/etc\/nginx\/modsec\/main.conf;/modsecurity_rules_file \/etc\/nginx\/modsec\/main.conf;/' /etc/nginx/modsec/modsecurity.conf
-
-# Restart NGINX
-systemctl restart nginx
+# Install ModSecurity-nginx connector
+cd /opt && git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git

@@ -148,12 +148,12 @@ if __name__ == '__main__':
     parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
 
+    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
+
     # Set up ModSecurity (if specified)
     if args.setup:
         agent.setup_modsecurity()
         exit()
-
-    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
 
     try:
         # Register the agent with the server
