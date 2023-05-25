@@ -1,7 +1,7 @@
 import json
 import time
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from .models import Agent
+from .models import Agent, Alert
 from django.db.models import Q
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -103,6 +103,22 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
+            # Attack alert
+            if text_data_json["type"] == "attack_alert":
+                message = text_data_json["message"]
+                timestamp = text_data_json["timestamp"]
+                # Send message to agent group
+                await self.channel_layer.group_send(
+                    self.agent_group_name, 
+                    {   
+                        "type": "attack_alert", 
+                        "message": message,
+                        "timestamp": timestamp
+                    }
+                )
+                # Update last active time
+                self.status_updater.update_last_activity_time(self.agent_name)
+
         except Exception as e:
             print("Unexpected error! ", e)
 
@@ -114,6 +130,23 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         
         # Send message to WebSocket
         await self.send_json({"type":"agent_register","message": message})
+
+    async def attack_alert(self, event):
+        # New alert
+        message = event["message"]
+
+        try:
+            obj =  await Agent.objects.aget(name='agent1')
+            created = True
+        except Agent.DoesNotExist:
+            created = False
+
+
+        new_alert = Alert(agent=obj,message=message[:450], src='1.1.1.1', dst='1.1.1.2', dstp=80, protocol='TCP')
+        await new_alert.asave()
+        
+        # Send message to WebSocket
+        await self.send_json({"type":"attack_alert","message": message})
 
     async def metrics_update(self, event):
         # Real-time metrics
