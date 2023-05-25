@@ -2,7 +2,7 @@
 
 # Install nginx
 apt-get update -y
-apt-get install -y nginx unzip
+apt-get install -y nginx=1.18.0-6ubuntu14.3 unzip
 
 # Install ModSecurity
 DEBIAN_FRONTEND=noninteractive apt-get install -y bison build-essential ca-certificates curl dh-autoreconf doxygen \
@@ -35,6 +35,7 @@ cp objs/ngx_http_modsecurity_module.so /etc/nginx/modules
 echo "load_module /etc/nginx/modules/ngx_http_modsecurity_module.so;" | tee -a /etc/nginx/nginx.conf
 
 # Setting Up OWASP-CRS
+rm -rf /usr/share/modsecurity-crs
 git clone https://github.com/coreruleset/coreruleset /usr/local/modsecurity-crs
 mv /usr/local/modsecurity-crs/crs-setup.conf.example /usr/local/modsecurity-crs/crs-setup.conf
 mv /usr/local/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf.example /usr/local/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf

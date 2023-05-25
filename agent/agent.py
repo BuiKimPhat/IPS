@@ -46,9 +46,9 @@ class IPSAgent:
             self.register_error = False
             print(message)
 
-    async def setup_modsecurity(self):
+    def setup_modsecurity(self):
         # Set up ModSecurity by running a shell script or executing API calls
-        cmd = ['setup_modsecurity.sh']
+        cmd = ['./setup_modsecurity.sh']
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output.decode('utf-8'))
@@ -69,7 +69,7 @@ class IPSAgent:
                     net_out = 0
                     net_in = 0
                     # Keep track of the last line number read from the audit log file
-                    # last_line_num = 0
+                    last_line_num = 0
 
                     while True:
                         # Get CPU utilization and memory usage data
@@ -83,7 +83,7 @@ class IPSAgent:
                         timestamp = int(time.time())
                         metrics_count = metrics_count + 1
 
-                        # Send metrics updates to the server every metrcis_interval
+                        # Send metrics updates to the server every metrics_interval
                         elapsed_seconds = timestamp - last_sent_timestamp
                         if elapsed_seconds >= metrics_interval:
                             # Construct a JSON message with the data
@@ -110,27 +110,27 @@ class IPSAgent:
                             disk_write = 0
                             net_out = 0
                             net_in = 0
-                        
+
+                        # Check the ModSecurity audit log for new security events
+                        with open('/var/log/modsec_audit.log') as f:
+                            f.seek(last_line_num)
+                            for line in f:
+                                if 'ModSecurity: Access denied' in line:
+                                    # Construct a JSON message for the attack
+                                    attack_message = {
+                                        'type': 'attack_alert',
+                                        'message': line,
+                                        'timestamp': timestamp
+                                    }
+
+                                    # Send the message to the server using the sendMessage function
+                                    await websocket.send(json.dumps(attack_message))
+
+                            last_line_num = f.tell()
+
                         # Sleep for 1 second before sending the next message
                         await asyncio.sleep(1)
 
-
-
-                        # Check the ModSecurity audit log for new security events
-                        # with open('/var/log/modsec_audit.log') as f:
-                        #     f.seek(last_line_num)
-                        #     for line in f:
-                        #         if 'Message: Access denied' in line:
-                        #             # Construct a JSON message for the attack
-                        #             attack_message = {
-                        #                 'type': 'attack_detected',
-                        #                 'timestamp': timestamp
-                        #             }
-
-                        #             # Send the message to the server using the sendMessage function
-                        #             sendMessage(attack_message)
-
-                        #     last_line_num = f.tell()
 
             except Exception as e:
                 connected = False
