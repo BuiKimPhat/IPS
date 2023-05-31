@@ -108,7 +108,6 @@ module "agent1_ec2" {
   ami                         = var.ami
   instance_type               = var.agent_ec2_type
   key_name                    = var.key_name
-  monitoring                  = true
   vpc_security_group_ids      = [aws_security_group.ssh_http.id]
   associate_public_ip_address = true
   subnet_id                   = module.ips_vpc.public_subnets[1]
