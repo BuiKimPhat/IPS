@@ -7,6 +7,7 @@ import time
 import subprocess
 import re
 import socket
+import select
 
 class IPSAgent:
     def __init__(self, server, name, interface, health):
@@ -46,20 +47,15 @@ class IPSAgent:
             self.register_error = False
             print(message)
 
-    def setup_modsecurity(self):
-        # Set up ModSecurity by running a shell script or executing API calls
-        cmd = ['./setup_modsecurity.sh']
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        output, error = process.communicate()
-        print(output.decode('utf-8'))
-
     async def send_metrics(self, metrics_interval):
         connected = False
         while not connected:
             try:
                 async with websockets.connect(self.uri) as websocket:
-                    print("Connection established. Sending metric...")
+                    print("Connection established. Sending messages...")
                     connected = True
+
+                    # Metrics variables
                     last_sent_timestamp = 0
                     metrics_count = 0
                     cpu_percent = 0
@@ -68,7 +64,7 @@ class IPSAgent:
                     disk_write = 0
                     net_out = 0
                     net_in = 0
-                    # Keep track of the last line number read from the audit log file
+                    # Logs variables
                     last_line_num = 0
 
                     while True:
@@ -79,7 +75,6 @@ class IPSAgent:
                         disk_write = disk_write + psutil.disk_io_counters().write_count
                         net_out = net_out + psutil.net_io_counters().bytes_sent
                         net_in = net_in + psutil.net_io_counters().bytes_recv
-
                         timestamp = int(time.time())
                         metrics_count = metrics_count + 1
 
@@ -131,6 +126,61 @@ class IPSAgent:
                         # Sleep for 1 second before sending the next message
                         await asyncio.sleep(1)
 
+            except Exception as e:
+                connected = False
+                print("Error: ", e)
+                await asyncio.sleep(5) # 5 seconds delay before attempting to reconnect
+                print("Reconnecting...")
+
+    async def send_logs(self):
+        connected = False
+        while not connected:
+            try:
+                import time
+
+                f = subprocess.Popen(['tail','-F',filename],\
+                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p = select.poll()
+                p.register(f.stdout)
+
+                while True:
+                    if p.poll(1):
+                        print f.stdout.readline()
+                    time.sleep(1)
+                async with websockets.connect(self.uri) as websocket:
+                    print("Connection established. Sending logs...")
+                    connected = True
+
+                    while True:
+                        # Get CPU utilization and memory usage data
+                        cpu_percent = cpu_percent + psutil.cpu_percent()
+                        mem_percent = mem_percent + psutil.virtual_memory().percent
+                        disk_read = disk_read + psutil.disk_io_counters().read_count
+                        disk_write = disk_write + psutil.disk_io_counters().write_count
+                        net_out = net_out + psutil.net_io_counters().bytes_sent
+                        net_in = net_in + psutil.net_io_counters().bytes_recv
+
+                        timestamp = int(time.time())
+                        metrics_count = metrics_count + 1
+
+                        # Send metrics updates to the server every metrics_interval
+                        elapsed_seconds = timestamp - last_sent_timestamp
+                        if elapsed_seconds >= metrics_interval:
+                            # Construct a JSON message with the data
+                            message = {
+                                'type': 'metrics_update',  # Use a custom message type for metrics updates
+                                'cpu_percent': cpu_percent / metrics_count,
+                                'mem_percent': mem_percent / metrics_count,
+                                'disk_read': disk_read / metrics_count,
+                                'disk_write': disk_write / metrics_count,
+                                'net_out': net_out / metrics_count,
+                                'net_in': net_in / metrics_count,
+                                'timestamp': timestamp,
+                            }
+
+                            # Send the message to the server
+                            # print("Sending: ", message)
+                            await websocket.send(json.dumps(message))
 
             except Exception as e:
                 connected = False
@@ -145,20 +195,14 @@ if __name__ == '__main__':
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
     parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=20)
-    parser.add_argument('--setup', action="store_true", help='Setup ModSecurity')
     args = parser.parse_args()
 
     agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
-
-    # Set up ModSecurity (if specified)
-    if args.setup:
-        agent.setup_modsecurity()
-        exit()
 
     try:
         # Register the agent with the server
         asyncio.run(agent.connect_to_server())
         # Send metrics to the server
-        asyncio.run(agent.send_metrics(args.metrics_interval))
+        asyncio.gather(agent.send_metrics(args.metrics_interval), agent.send_logs())
     except KeyboardInterrupt:
         print("Stopping agent...")
