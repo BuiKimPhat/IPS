@@ -13,7 +13,7 @@ class Alert(models.Model):
     def __str__(self):
         return self.message
     agent = models.ForeignKey(Agent, on_delete=models.PROTECT)
-    message = models.CharField(max_length=500)
+    message = models.CharField(max_length=800)
     src = models.GenericIPAddressField()
     srcp = models.PositiveIntegerField(null=True)
     dst = models.GenericIPAddressField()

@@ -103,15 +103,15 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
-            # Attack alert
-            if text_data_json["type"] == "attack_alert":
+            # Log stream
+            if text_data_json["type"] == "access_log":
                 message = text_data_json["message"]
                 timestamp = text_data_json["timestamp"]
                 # Send message to agent group
                 await self.channel_layer.group_send(
                     self.agent_group_name, 
                     {   
-                        "type": "attack_alert", 
+                        "type": "access_log", 
                         "message": message,
                         "timestamp": timestamp
                     }
@@ -131,22 +131,24 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # Send message to WebSocket
         await self.send_json({"type":"agent_register","message": message})
 
-    async def attack_alert(self, event):
-        # New alert
+    async def access_log(self, event):
+        # New access log on nginx agent
         message = event["message"]
 
-        try:
-            obj =  await Agent.objects.aget(name='agent1')
-            created = True
-        except Agent.DoesNotExist:
-            created = False
+        # try:
+        #     obj =  await Agent.objects.aget(name='agent1')
+        #     created = True
+        # except Agent.DoesNotExist:
+        #     created = False
 
 
-        new_alert = Alert(agent=obj,message=message[:450], src='1.1.1.1', dst='1.1.1.2', dstp=80, protocol='TCP')
-        await new_alert.asave()
+        # new_alert = Alert(agent=obj,message=message[:450], src='1.1.1.1', dst='1.1.1.2', dstp=80, protocol='TCP')
+        # await new_alert.asave()
+
+        # TODO: Implement log processing
         
-        # Send message to WebSocket
-        await self.send_json({"type":"attack_alert","message": message})
+        # Send alert to WebSocket
+        await self.send_json({"type":"attack_alert","message": f"Alert: {message}"})
 
     async def metrics_update(self, event):
         # Real-time metrics
