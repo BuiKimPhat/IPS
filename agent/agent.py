@@ -107,19 +107,18 @@ class IPSAgent:
                             net_in = 0
 
                         # Check the ModSecurity audit log for new security events
-                        with open('/var/log/modsec_audit.log') as f:
+                        with open('/var/log/nginx/access.log') as f:
                             f.seek(last_line_num)
                             for line in f:
-                                if 'ModSecurity: Access denied' in line:
-                                    # Construct a JSON message for the attack
-                                    attack_message = {
-                                        'type': 'attack_alert',
-                                        'message': line,
-                                        'timestamp': timestamp
-                                    }
+                                # Construct a JSON message for the attack
+                                log_message = {
+                                    'type': 'access_log',
+                                    'message': line,
+                                    'timestamp': timestamp
+                                }
 
-                                    # Send the message to the server using the sendMessage function
-                                    await websocket.send(json.dumps(attack_message))
+                                # Send the message to the server using the sendMessage function
+                                await websocket.send(json.dumps(log_message))
 
                             last_line_num = f.tell()
 
@@ -136,8 +135,6 @@ class IPSAgent:
         connected = False
         while not connected:
             try:
-                import time
-
                 f = subprocess.Popen(['tail','-F',filename],\
                         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 p = select.poll()
