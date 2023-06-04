@@ -47,7 +47,7 @@ class IPSAgent:
             self.register_error = False
             print(message)
 
-    async def send_metrics(self, metrics_interval):
+    async def send_message(self, metrics_interval):
         connected = False
         while not connected:
             try:
@@ -111,10 +111,18 @@ class IPSAgent:
                             f.seek(last_line_num)
                             for line in f:
                                 # Construct a JSON message for the attack
+                                log_format = '(?P<remote_addr>.*) - (?P<remote_user>.*) \[(?P<time_local>.*)\] "(?P<request>.*)" (?P<status>.*) (?P<body_bytes_sent>.*) "(?P<http_referer>.*)" "(?P<http_user_agent>.*)"'
+                                match = re.search(log_format, line)
                                 log_message = {
                                     'type': 'access_log',
-                                    'message': line,
-                                    'timestamp': timestamp
+                                    'srcip': match.group('remote_addr'),
+                                    'remote_user': match.group('remote_user'),
+                                    'timestamp': match.group('time_local'),
+                                    'request': match.group('request'),
+                                    'status': match.group('status'),
+                                    'body_bytes_sent': match.group('body_bytes_sent'),
+                                    'referer': match.group('http_referer'),
+                                    'user_agent': match.group('http_user_agent')
                                 }
 
                                 # Send the message to the server using the sendMessage function
@@ -124,60 +132,6 @@ class IPSAgent:
 
                         # Sleep for 1 second before sending the next message
                         await asyncio.sleep(1)
-
-            except Exception as e:
-                connected = False
-                print("Error: ", e)
-                await asyncio.sleep(5) # 5 seconds delay before attempting to reconnect
-                print("Reconnecting...")
-
-    async def send_logs(self):
-        connected = False
-        while not connected:
-            try:
-                f = subprocess.Popen(['tail','-F',filename],\
-                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                p = select.poll()
-                p.register(f.stdout)
-
-                while True:
-                    if p.poll(1):
-                        print f.stdout.readline()
-                    time.sleep(1)
-                async with websockets.connect(self.uri) as websocket:
-                    print("Connection established. Sending logs...")
-                    connected = True
-
-                    while True:
-                        # Get CPU utilization and memory usage data
-                        cpu_percent = cpu_percent + psutil.cpu_percent()
-                        mem_percent = mem_percent + psutil.virtual_memory().percent
-                        disk_read = disk_read + psutil.disk_io_counters().read_count
-                        disk_write = disk_write + psutil.disk_io_counters().write_count
-                        net_out = net_out + psutil.net_io_counters().bytes_sent
-                        net_in = net_in + psutil.net_io_counters().bytes_recv
-
-                        timestamp = int(time.time())
-                        metrics_count = metrics_count + 1
-
-                        # Send metrics updates to the server every metrics_interval
-                        elapsed_seconds = timestamp - last_sent_timestamp
-                        if elapsed_seconds >= metrics_interval:
-                            # Construct a JSON message with the data
-                            message = {
-                                'type': 'metrics_update',  # Use a custom message type for metrics updates
-                                'cpu_percent': cpu_percent / metrics_count,
-                                'mem_percent': mem_percent / metrics_count,
-                                'disk_read': disk_read / metrics_count,
-                                'disk_write': disk_write / metrics_count,
-                                'net_out': net_out / metrics_count,
-                                'net_in': net_in / metrics_count,
-                                'timestamp': timestamp,
-                            }
-
-                            # Send the message to the server
-                            # print("Sending: ", message)
-                            await websocket.send(json.dumps(message))
 
             except Exception as e:
                 connected = False
@@ -200,6 +154,8 @@ if __name__ == '__main__':
         # Register the agent with the server
         asyncio.run(agent.connect_to_server())
         # Send metrics to the server
-        asyncio.gather(agent.send_metrics(args.metrics_interval), agent.send_logs())
+        asyncio.run(agent.send_message(args.metrics_interval))
     except KeyboardInterrupt:
         print("Stopping agent...")
+    except Exception as e:
+        print(e)
