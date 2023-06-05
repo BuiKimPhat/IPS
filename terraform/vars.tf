@@ -37,7 +37,7 @@ variable "monitor_spot_price" {
 }
 variable "monitor_ec2_type" {
     type = string
-    default = "t3a.medium"
+    default = "t3.medium"
 }
 variable "monitor_user_data_64" {
     type = string
