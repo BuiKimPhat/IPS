@@ -27,6 +27,14 @@ variable "ami" {
     type = string
     default = "ami-007855ac798b5175e"
 }
+variable "monitor_spot" {
+    type = bool
+    default = true
+}
+variable "monitor_spot_price" {
+    type = string
+    default = "0.0375"
+}
 variable "monitor_ec2_type" {
     type = string
     default = "t3a.medium"
