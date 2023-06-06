@@ -89,23 +89,23 @@
 <table class="table table-hover">
     <thead>
         <tr>
-            <th scope="col">#</th>
-            <th scope="col">Message</th>
+            <th scope="col">Rule triggered</th>
+            <th scope="col">Agent</th>
             <th scope="col">Source IP</th>
-            <th scope="col">Destination IP</th>
-            <th scope="col">Destination Port</th>
+            <th scope="col">Request</th>
+            <th scope="col">Action</th>
             <th scope="col">Time</th>
         </tr>
     </thead>
     <tbody>
         {% for alert in page_obj %}
         <tr style="cursor: pointer;"><a href="#">
-                <th scope="row">{{alert.id}}</th>
-                <td style="max-width: 550px;">{{alert.message}}</td>
-                <td>{{alert.src}}</td>
-                <td>{{alert.dst}}</td>
-                <td>{{alert.dstp}}</td>
-                <td>{{alert.created_at}}</td>
+                <th scope="row">{{alert.rule.name}}</th>
+                <td>{{alert.agent.name}}</td>
+                <td>{{alert.remote_addr}}</td>
+                <td>{{alert.request}}</td>
+                <td>{% if alert.rule.deny %}Denied{% else %}Allowed</td>
+                <td>{{alert.timestamp}}</td>
             </a></tr>
         {% endfor %}
     </tbody>

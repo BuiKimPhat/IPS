@@ -3,16 +3,18 @@ import time
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .models import Agent, Alert
 from django.db.models import Q
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 import re
+from monitorweb.utils.enums import Request
+from monitorweb.utils.waf import WAF
+
+waf = WAF()
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         self.agent_group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
-        self.validate = URLValidator()
 
         # Join agent group
         await self.channel_layer.group_add(self.agent_group_name, self.channel_name)
@@ -128,7 +130,8 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                         'body_bytes_sent': body_bytes_sent,
                         'request_time': request_time,
                         'request_body': request_body,
-                        'req_header': req_header
+                        'req_header': req_header,
+                        'destination': self.agent_name
                     }
                 )
                 # Update last active time
@@ -148,15 +151,18 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
     async def access_log(self, event):
         # New access log on nginx agent
-        remote_addr = event["remote_addr"]
-        timestamp = event["timestamp"]
-        remote_user = event["remote_user"]
-        request = event["request"]
-        status = event["status"]
-        body_bytes_sent = event["body_bytes_sent"]
-        request_time = event["request_time"]
-        request_body = event["request_body"]
-        req_header = event["req_header"]
+        request = {
+            Request.ip : event["remote_addr"],
+            Request.timestamp : event["timestamp"],
+            Request.user : event["remote_user"],
+            Request.url : event["request"],
+            Request.status : event["status"],
+            Request.bbs : event["body_bytes_sent"],
+            Request.req_time : event["request_time"],
+            Request.body : event["request_body"],
+            Request.headers : event["req_header"],
+            Request.destination : event["destination"]
+        }
 
         # try:
         #     obj =  await Agent.objects.aget(name='agent1')
@@ -169,7 +175,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # await new_alert.asave()
 
         # TODO: Implement log processing
-        
+        waf.detect_attack(request)
         
         # Send alert to WebSocket
         await self.send_json({"type":"attack_alert","message": f"Alert: "})

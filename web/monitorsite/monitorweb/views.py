@@ -60,15 +60,12 @@ def agents(request):
 
 @login_required
 def alerts(request):
-    alert_list = Alert.objects.order_by("-created_at")
+    alert_list = Alert.objects.order_by("-timestamp")
     search = request.GET.get("search")
     if search is None:
-        alert_list = Alert.objects.order_by("-created_at")
+        alert_list = Alert.objects.order_by("-timestamp")
     else: 
-        if search.isnumeric():
-            alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(src__contains=search) | Q(protocol__icontains=search) | Q(dst__contains=search) | Q(srcp=search) | Q(dstp=search) | Q(agent__name__icontains=search)).order_by("-created_at")
-        else:
-            alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(src__contains=search) | Q(protocol__icontains=search) | Q(dst__contains=search) | Q(agent__name__icontains=search)).order_by("-created_at")
+        alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(rule__name__icontains=search) | Q(rule__class__icontains=search) | Q(agent__ip__contains=search) | Q(remote_addr__icontains=search) | Q(request__icontains=search) | Q(agent__name__icontains=search)).order_by("-timestamp")
 
     paginator = Paginator(alert_list, 100)
 
