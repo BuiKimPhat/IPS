@@ -28,7 +28,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def receive_json(self, text_data_json):
         try:
             # text_data_json = json.loads(text_data)
-            print(text_data_json)
+            # print(text_data_json)
 
             # Register agent
             if text_data_json["type"] == "agent_register":
@@ -111,9 +111,9 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 timestamp = text_data_json["timestamp"]
                 remote_user = text_data_json["remote_user"]
                 request = text_data_json["request"]
-                status = text_data_json["status"]
-                body_bytes_sent = text_data_json["body_bytes_sent"]
-                request_time = text_data_json["request_time"]
+                status = int(text_data_json["status"])
+                body_bytes_sent = int(text_data_json["body_bytes_sent"])
+                request_time = float(text_data_json["request_time"])
                 request_body = text_data_json["request_body"]
                 req_header = text_data_json["req_header"]
 
@@ -152,16 +152,16 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def access_log(self, event):
         # New access log on nginx agent
         request = {
-            Request.ip : event["remote_addr"],
-            Request.timestamp : event["timestamp"],
-            Request.user : event["remote_user"],
-            Request.url : event["request"],
-            Request.status : event["status"],
-            Request.bbs : event["body_bytes_sent"],
-            Request.req_time : event["request_time"],
-            Request.body : event["request_body"],
-            Request.headers : event["req_header"],
-            Request.destination : event["destination"]
+            Request.ip.value : event["remote_addr"],
+            Request.timestamp.value : event["timestamp"],
+            Request.user.value : event["remote_user"],
+            Request.url.value : event["request"],
+            Request.status.value : event["status"],
+            Request.bbs.value : event["body_bytes_sent"],
+            Request.req_time.value : event["request_time"],
+            Request.body.value : event["request_body"],
+            Request.headers.value : event["req_header"],
+            Request.destination.value : event["destination"]
         }
 
         # try:
@@ -175,7 +175,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # await new_alert.asave()
 
         # TODO: Implement log processing
-        waf.detect_attack(request)
+        await waf.detect_attack(request)
         
         # Send alert to WebSocket
         await self.send_json({"type":"attack_alert","message": f"Alert: "})

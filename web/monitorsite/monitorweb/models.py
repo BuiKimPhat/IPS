@@ -16,29 +16,29 @@ class Rule(models.Model):
     name = models.CharField(max_length=200)
     rule_class = models.CharField(max_length=300)
     deny = models.BooleanField(default=True)
-    ref = models.URLField(null=True, max_length=500)
-    description = models.CharField(null=True,max_length=1000)
+    ref = models.URLField(null=True,blank=True, max_length=500)
+    description = models.CharField(null=True, blank=True, max_length=1000)
     OPERATOR_CHOICES = [
-        (Operator.AND, "AND (&&)"),
-        (Operator.OR, "OR (||)")
+        (Operator.AND.value, "AND (&&)"),
+        (Operator.OR.value, "OR (||)")
     ]
-    operator = models.CharField(choices=OPERATOR_CHOICES, max_length=10, default="OR")
+    operator = models.CharField(choices=OPERATOR_CHOICES, max_length=10, default=Operator.OR.value)
 
 class RuleComponent(models.Model):
     def __str__(self):
         return f"{self.rule.name} - {self.filter_field} : {self.regex}"
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE)
     FILTER_FIELD_CHOICES = [
-        (Request.url, "Request (URL)"),
-        (Request.status, "Status code"),
-        (Request.bbs, "Body bytes sent"),
-        (Request.user, "Remote user"),
-        (Request.req_time, "Request time"),
-        (Request.body, "Request body"),
-        (Request.headers, "Request headers"),
-        (Request.ip, "Source IP address"),
+        (Request.url.value, "Request (URL)"),
+        (Request.status.value, "Status code"),
+        (Request.bbs.value, "Body bytes sent"),
+        (Request.user.value, "Remote user"),
+        (Request.req_time.value, "Request time"),
+        (Request.body.value, "Request body"),
+        (Request.headers.value, "Request headers"),
+        (Request.ip.value, "Source IP address"),
     ]
-    filter_field = models.CharField(choices=FILTER_FIELD_CHOICES,max_length=30, default="URL")
+    filter_field = models.CharField(choices=FILTER_FIELD_CHOICES,max_length=30, default=Request.url.value)
     regex = models.CharField(null=True,max_length=1500)
 
 class Alert(models.Model):
