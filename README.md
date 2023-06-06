@@ -10,9 +10,9 @@
 
 ### Setup on **agent**
 1. Run `sudo ./agent/setup.sh`
-2. For code format, add the following code to your desired block (http, server, location,...)
+2. For code format, add the following code to your desired block (http, server, location,...), supposing that the output log path is `/var/log/nginx/access.log` 
 ```
-log_format json_combined escape=json
+log_format json_full escape=json
   '{'
     '"timestamp":"$time_local",'
     '"remote_addr":"$remote_addr",'
@@ -21,14 +21,11 @@ log_format json_combined escape=json
     '"status": "$status",'
     '"body_bytes_sent":"$body_bytes_sent",'
     '"request_time":"$request_time",'
-    '"http_referrer":"$http_referer",'
-    '"http_user_agent":"$http_user_agent"'
+    '"request_body":"$request_body",'
+    '"req_header":"$req_header"'
   '}';
-log_format log_req_resp '$remote_addr - $remote_user [$time_local] '
-                        '"$request" $status $body_bytes_sent ${request_time}ms '
-                        '$request_body<>$req_header';
 
-access_log  logs/access.log json_combined;
+access_log /var/log/nginx/access.log json_full;
 ```
 3. For Lua code to extract req/resp content, add the following code to your desired block (server, location, if, ...)
 ```
@@ -53,3 +50,4 @@ header_filter_by_lua '
     end
 ';
 ```
+4. Restart nginx service `sudo service nginx restart`

@@ -5,8 +5,8 @@ import json
 import psutil
 import time
 import subprocess
-import re
 import socket
+import re
 import select
 
 class IPSAgent:
@@ -111,18 +111,18 @@ class IPSAgent:
                             f.seek(last_line_num)
                             for line in f:
                                 # Construct a JSON message for the attack
-                                log_format = '(?P<remote_addr>.*) - (?P<remote_user>.*) \[(?P<time_local>.*)\] "(?P<request>.*)" (?P<status>.*) (?P<body_bytes_sent>.*) "(?P<http_referer>.*)" "(?P<http_user_agent>.*)"'
-                                match = re.search(log_format, line)
+                                origin_log = json.loads(line)
                                 log_message = {
                                     'type': 'access_log',
-                                    'srcip': match.group('remote_addr'),
-                                    'remote_user': match.group('remote_user'),
-                                    'timestamp': match.group('time_local'),
-                                    'request': match.group('request'),
-                                    'status': match.group('status'),
-                                    'body_bytes_sent': match.group('body_bytes_sent'),
-                                    'referer': match.group('http_referer'),
-                                    'user_agent': match.group('http_user_agent')
+                                    'remote_addr': origin_log["remote_addr"],
+                                    'remote_user':  origin_log['remote_user'],
+                                    'timestamp': origin_log['timestamp'],
+                                    'request': origin_log['request'],
+                                    'status': origin_log['status'],
+                                    'body_bytes_sent': origin_log['body_bytes_sent'],
+                                    'request_time': origin_log['request_time'],
+                                    'request_body': origin_log['request_body'],
+                                    'req_header': origin_log['req_header'][:-1].split("~")
                                 }
 
                                 # Send the message to the server using the sendMessage function
