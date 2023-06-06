@@ -7,7 +7,6 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 import re
 
-
 class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
@@ -106,27 +105,30 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
             # Log stream
             if text_data_json["type"] == "access_log":
-                srcip = text_data_json["srcip"]
+                remote_addr = text_data_json["remote_addr"]
                 timestamp = text_data_json["timestamp"]
                 remote_user = text_data_json["remote_user"]
                 request = text_data_json["request"]
                 status = text_data_json["status"]
                 body_bytes_sent = text_data_json["body_bytes_sent"]
-                referer = text_data_json["referer"]
-                user_agent = text_data_json["user_agent"]
+                request_time = text_data_json["request_time"]
+                request_body = text_data_json["request_body"]
+                req_header = text_data_json["req_header"]
+
                 # Send message to agent group
                 await self.channel_layer.group_send(
                     self.agent_group_name, 
                     {   
                         "type": "access_log", 
-                        'srcip': srcip,
+                        'remote_addr': remote_addr,
                         'remote_user': remote_user,
                         'timestamp': timestamp,
                         'request': request,
                         'status': status,
                         'body_bytes_sent': body_bytes_sent,
-                        'referer': referer,
-                        'user_agent': user_agent
+                        'request_time': request_time,
+                        'request_body': request_body,
+                        'req_header': req_header
                     }
                 )
                 # Update last active time
@@ -146,14 +148,15 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
     async def access_log(self, event):
         # New access log on nginx agent
-        srcip = event["srcip"]
+        remote_addr = event["remote_addr"]
         timestamp = event["timestamp"]
         remote_user = event["remote_user"]
         request = event["request"]
         status = event["status"]
         body_bytes_sent = event["body_bytes_sent"]
-        referer = event["referer"]
-        user_agent = event["user_agent"]
+        request_time = event["request_time"]
+        request_body = event["request_body"]
+        req_header = event["req_header"]
 
         # try:
         #     obj =  await Agent.objects.aget(name='agent1')
@@ -166,7 +169,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # await new_alert.asave()
 
         # TODO: Implement log processing
-
+        
         
         # Send alert to WebSocket
         await self.send_json({"type":"attack_alert","message": f"Alert: "})
