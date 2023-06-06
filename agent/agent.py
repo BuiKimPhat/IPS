@@ -48,6 +48,8 @@ class IPSAgent:
             print(message)
 
     async def send_message(self, metrics_interval):
+        if self.register_error:
+            raise Exception("Unidentified error during registration. Exiting...")
         connected = False
         while not connected:
             try:
@@ -153,6 +155,7 @@ if __name__ == '__main__':
     try:
         # Register the agent with the server
         asyncio.run(agent.connect_to_server())
+
         # Send metrics to the server
         asyncio.run(agent.send_message(args.metrics_interval))
     except KeyboardInterrupt:
