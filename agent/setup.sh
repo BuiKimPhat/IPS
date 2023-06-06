@@ -48,3 +48,7 @@ make install PREFIX=/usr/share/nginx
 # Load modules in nginx
 sed -i 's/pid \/run\/nginx.pid;/pid \/run\/nginx.pid;\nload_module \/etc\/nginx\/modules\/ndk_http_module.so;\nload_module \/etc\/nginx\/modules\/ngx_http_lua_module.so;/' /etc/nginx/nginx.conf
 sed -i 's/http {/http {\n\tlua_package_path "\/usr\/share\/nginx\/lib\/lua\/\?\.lua;;";/' /etc/nginx/nginx.conf
+
+# Supposing that the access log is /var/log/nginx/access.log
+chmod 777 /var/log/nginx/access.log
+# Reload nginx

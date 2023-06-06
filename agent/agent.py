@@ -10,13 +10,14 @@ import re
 import select
 
 class IPSAgent:
-    def __init__(self, server, name, interface, health):
+    def __init__(self, server, name, interface, health, log_path):
         self.server = server
         self.name = name
         self.uri = self.server+self.name+"/"
         self.ip = ""
         self.health = health
         self.register_error = False
+        self.log_path = log_path
 
         for addr in psutil.net_if_addrs()[interface]:
             if addr.family == socket.AF_INET:
@@ -51,6 +52,8 @@ class IPSAgent:
         if self.register_error:
             raise Exception("Unidentified error during registration. Exiting...")
         connected = False
+        # Logs variables
+        last_line_num = 0
         while not connected:
             try:
                 async with websockets.connect(self.uri) as websocket:
@@ -66,8 +69,6 @@ class IPSAgent:
                     disk_write = 0
                     net_out = 0
                     net_in = 0
-                    # Logs variables
-                    last_line_num = 0
 
                     while True:
                         # Get CPU utilization and memory usage data
@@ -109,7 +110,7 @@ class IPSAgent:
                             net_in = 0
 
                         # Check the ModSecurity audit log for new security events
-                        with open('/var/log/nginx/access.log') as f:
+                        with open(self.log_path) as f:
                             f.seek(last_line_num)
                             for line in f:
                                 # Construct a JSON message for the attack
@@ -148,9 +149,10 @@ if __name__ == '__main__':
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
     parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=20)
+    parser.add_argument('-l','--log-path', required=False, type=str, help='Path to nginx log file', default='/var/log/nginx/access.log')
     args = parser.parse_args()
 
-    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri)
+    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri, args.log_path)
 
     try:
         # Register the agent with the server
