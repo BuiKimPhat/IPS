@@ -11,4 +11,5 @@ thread.start()
 
 websocket_urlpatterns = [
     re_path(r"ws/ips/(?P<agent_name>\w+)/$", consumers.IPSConsumer.as_asgi(), {'status_updater': status_updater}),
+    re_path(r"ws/ips/notification/$", consumers.NotiConsumer.as_asgi())
 ]

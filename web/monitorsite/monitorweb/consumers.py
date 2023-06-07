@@ -7,8 +7,47 @@ from django.core.exceptions import ValidationError
 import re
 from monitorweb.utils.enums import Request
 from monitorweb.utils.waf import WAF
+from channels.layers import get_channel_layer
 
 waf = WAF()
+
+notification_group_name = "ips_notification"
+
+class NotiConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        # Join noti group
+        print("Connected")
+        await self.channel_layer.group_add(notification_group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave noti group
+        print("Disconnected")
+
+        await self.channel_layer.group_discard(notification_group_name, self.channel_name)
+    async def receive_json(self, text_data_json):
+        try:
+            print(text_data_json)
+            rules_triggered = text_data_json["rules_triggered"]
+            await self.channel_layer.group_send(
+                notification_group_name, 
+                {   
+                    "type": "alert_attack", 
+                    "rules_triggered": rules_triggered
+                }
+            )
+        except Exception as e:
+            print("Unexpected error! ", e)
+    async def alert_attack(self, event):
+        # Alert attacks
+        rules_triggered = event["rules_triggered"]
+
+        # Send message to WebSocket
+        await self.send_json({   
+            "type": "alert_attack",
+            "rules_triggered": rules_triggered
+        })
+
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -27,7 +66,6 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
     # Receive message from WebSocket
     async def receive_json(self, text_data_json):
         try:
-            # text_data_json = json.loads(text_data)
             # print(text_data_json)
 
             # Register agent
@@ -121,16 +159,19 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 }
 
                 # WAF
-                rule_triggered = await waf.detect_attack(req)
+                rules_triggered = await waf.detect_attack(req)
+                # print(rules_triggered)
 
                 # Send message to agent group
-                await self.channel_layer.group_send(
-                    self.agent_group_name, 
-                    {   
-                        "type": "alert_attack", 
-                        'rule_triggered': rule_triggered
-                    }
-                )
+                if len(rules_triggered) > 0:
+                    print(self.channel_name)
+                    await self.channel_layer.group_send(
+                        notification_group_name, 
+                        {   
+                            "type": "alert_attack", 
+                            'rules_triggered': rules_triggered
+                        }
+                    )
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
@@ -148,11 +189,10 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
     async def alert_attack(self, event):
         # New access log on nginx agent
-        rule_triggered = event['rule_triggered']
+        rules_triggered = event['rules_triggered']
         
         # Send alert to WebSocket
-        if rule_triggered > 0:
-            await self.send_json({"type":"alert_attack", "rule_triggered": rule_triggered})
+        await self.send_json({"type":"alert_attack", "rules_triggered": rules_triggered})
 
     async def metrics_update(self, event):
         # Real-time metrics

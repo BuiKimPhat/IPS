@@ -3,30 +3,27 @@ import re
 from monitorweb.utils.enums import Request, Operator
 from asgiref.sync import sync_to_async
 class WAF:
-    rules = None
     def __init__(self):
         print("WAF has been initiated.")
-    def import_rules(self, file_path):
-        # TODO: import from JSON file
-        with open(file_path) as f:
-            pass
 
-    def alert(self, request, rule, message):
+    def create_alert(self, request, rule, message):
         try:
             agent = Agent.objects.get(name=request[Request.destination.value])
             new_alert = Alert(agent=agent, rule=rule, message=message, remote_user=request[Request.user.value], status=request[Request.status.value], body_bytes_sent=request[Request.bbs.value], request_time=request[Request.req_time.value], request=request[Request.url.value], body=request[Request.body.value], headers=request[Request.headers.value], remote_addr=request[Request.ip.value])
             new_alert.save()
-            print(new_alert)
+            print(f"Alert: {new_alert}")
         except Exception as e:
             print(f"Error: {e}")
+
     @sync_to_async
     def detect_attack(self, request):
+        print("Processing...")
         # Check every rules
-        rules_triggered = 0
+        rules_triggered = []
         for rule in Rule.objects.all():
             operator = rule.operator
             rule_components = RuleComponent.objects.filter(rule=rule)
-            message = "Possible payload: "
+            message = "Possible payloads: "
             # Check every rule components
             # Operator "AND"
             if operator == Operator.AND.value:
@@ -49,6 +46,6 @@ class WAF:
                     # print(component.regex, request[component.filter_field])
             
             if result:
-                rules_triggered += 1
-                self.alert(request, rule, message)
+                rules_triggered.append({"name": rule.name, "rule_class": rule.rule_class, "deny": rule.deny})
+                self.create_alert(request, rule, message)
         return rules_triggered
