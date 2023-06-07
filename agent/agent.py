@@ -161,6 +161,6 @@ if __name__ == '__main__':
         # Send metrics to the server
         asyncio.run(agent.send_message(args.metrics_interval))
     except KeyboardInterrupt:
-        print("Stopping agent...")
+        print("\nStopping agent...")
     except Exception as e:
         print(e)
