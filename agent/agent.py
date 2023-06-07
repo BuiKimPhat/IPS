@@ -111,7 +111,10 @@ class IPSAgent:
 
                         # Check the ModSecurity audit log for new security events
                         with open(self.log_path) as f:
-                            f.seek(last_line_num)
+                            if last_line_num == 0:
+                                f.seek(last_line_num, 2)
+                            else:
+                                f.seek(last_line_num)
                             for line in f:
                                 # Construct a JSON message for the attack
                                 origin_log = json.loads(line)
