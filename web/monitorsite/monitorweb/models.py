@@ -1,9 +1,14 @@
 from django.db import models
 from monitorweb.utils.enums import Request, Operator
 
+class Notification(models.Model):
+    def __str__(self):
+        return f"{self.title} - {self.message}"
+    name = models.CharField(max_length=200)
+
 class Agent(models.Model):
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.ip}"
     name = models.CharField(unique=True, max_length=200)
     ip = models.GenericIPAddressField(unique=True)
     health = models.URLField(max_length=200)
@@ -12,7 +17,7 @@ class Agent(models.Model):
 
 class Rule(models.Model):
     def __str__(self):
-        return self.name
+        return f"{self.rule_class} - {self.name}"
     name = models.CharField(max_length=200)
     rule_class = models.CharField(max_length=300)
     deny = models.BooleanField(default=True)
@@ -26,7 +31,7 @@ class Rule(models.Model):
 
 class RuleComponent(models.Model):
     def __str__(self):
-        return f"{self.rule.name} - {self.filter_field} : {self.regex}"
+        return f"{self.rule.rule_class} - {self.rule.name} - {self.filter_field} - {self.regex}"
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE)
     FILTER_FIELD_CHOICES = [
         (Request.url.value, "Request (URL)"),
@@ -43,7 +48,7 @@ class RuleComponent(models.Model):
 
 class Alert(models.Model):
     def __str__(self):
-        return self.rule.name + " on " + self.agent.name
+        return f"{self.rule.rule_class} - {self.rule.name} - {self.agent.name}"
     agent = models.ForeignKey(Agent, on_delete=models.PROTECT)
     rule = models.ForeignKey(Rule, null=True, on_delete=models.SET_NULL)
     message = models.CharField(null=True,max_length=200)

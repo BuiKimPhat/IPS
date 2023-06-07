@@ -6,10 +6,6 @@
 {% endblock head %}
 
 {% block content %}
-<div class="d-flex w-100 align-items-center">
-    <h1 class="display-6"><i><b>IPS</b> Agent <b>{{agent.name}}</b></i></h1>
-    <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
-</div>
 {{agent.name|json_script:"agent-name"}}
 
 <table class="my-3 table">
@@ -191,6 +187,6 @@
 </script>
 
 {% load static %}
-<script src="{% static 'monitorweb/socket.js' %}"></script>
+<script src="{% static 'monitorweb/agent_metrics.js' %}"></script>
 
 {% endblock content %}

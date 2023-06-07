@@ -36,13 +36,13 @@ def logout(request):
 
 @login_required
 def index(request):
-    context = {}
+    context = {"page_header": "Dashboard"}
     return render(request, "monitorweb/index.html", context)    
 
 @login_required
 def agent_detail(request, agent_id):
     agent = get_object_or_404(Agent, pk=agent_id)
-    context = {"agent": agent}
+    context = {"agent": agent, "page_header": f"Agent {agent.name}"}
     return render(request, "monitorweb/agent_detail.html", context)  
 
 @login_required
@@ -56,7 +56,7 @@ def agents(request):
     paginator = Paginator(agent_list, 25)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search})    
+    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "page_header": "Agents"})    
 
 @login_required
 def alerts(request):
@@ -71,4 +71,4 @@ def alerts(request):
 
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search})    
+    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts"})    

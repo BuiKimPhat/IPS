@@ -107,31 +107,28 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
             # Log stream
             if text_data_json["type"] == "access_log":
-                remote_addr = text_data_json["remote_addr"]
-                timestamp = text_data_json["timestamp"]
-                remote_user = text_data_json["remote_user"]
-                request = text_data_json["request"]
-                status = int(text_data_json["status"])
-                body_bytes_sent = int(text_data_json["body_bytes_sent"])
-                request_time = float(text_data_json["request_time"])
-                request_body = text_data_json["request_body"]
-                req_header = text_data_json["req_header"]
+                req = {
+                    Request.ip.value : text_data_json["remote_addr"],
+                    Request.timestamp.value : text_data_json["timestamp"],
+                    Request.user.value : text_data_json["remote_user"],
+                    Request.url.value : text_data_json["request"],
+                    Request.status.value : int(text_data_json["status"]),
+                    Request.bbs.value : int(text_data_json["body_bytes_sent"]),
+                    Request.req_time.value : float(text_data_json["request_time"]),
+                    Request.body.value : text_data_json["request_body"],
+                    Request.headers.value : text_data_json["req_header"],
+                    Request.destination.value : self.agent_name
+                }
+
+                # WAF
+                rule_triggered = await waf.detect_attack(req)
 
                 # Send message to agent group
                 await self.channel_layer.group_send(
                     self.agent_group_name, 
                     {   
-                        "type": "access_log", 
-                        'remote_addr': remote_addr,
-                        'remote_user': remote_user,
-                        'timestamp': timestamp,
-                        'request': request,
-                        'status': status,
-                        'body_bytes_sent': body_bytes_sent,
-                        'request_time': request_time,
-                        'request_body': request_body,
-                        'req_header': req_header,
-                        'destination': self.agent_name
+                        "type": "alert_attack", 
+                        'rule_triggered': rule_triggered
                     }
                 )
                 # Update last active time
@@ -140,7 +137,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             print("Unexpected error! ", e)
 
-
+    # Handlers called with each connected client in the channel 
     # Receive message from agent group
     async def agent_register(self, event):
         # Register agent
@@ -149,36 +146,13 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # Send message to WebSocket
         await self.send_json({"type":"agent_register","message": message})
 
-    async def access_log(self, event):
+    async def alert_attack(self, event):
         # New access log on nginx agent
-        request = {
-            Request.ip.value : event["remote_addr"],
-            Request.timestamp.value : event["timestamp"],
-            Request.user.value : event["remote_user"],
-            Request.url.value : event["request"],
-            Request.status.value : event["status"],
-            Request.bbs.value : event["body_bytes_sent"],
-            Request.req_time.value : event["request_time"],
-            Request.body.value : event["request_body"],
-            Request.headers.value : event["req_header"],
-            Request.destination.value : event["destination"]
-        }
-
-        # try:
-        #     obj =  await Agent.objects.aget(name='agent1')
-        #     created = True
-        # except Agent.DoesNotExist:
-        #     created = False
-
-
-        # new_alert = Alert(agent=obj,message=message[:450], src='1.1.1.1', dst='1.1.1.2', dstp=80, protocol='TCP')
-        # await new_alert.asave()
-
-        # TODO: Implement log processing
-        await waf.detect_attack(request)
+        rule_triggered = event['rule_triggered']
         
         # Send alert to WebSocket
-        await self.send_json({"type":"attack_alert","message": f"Alert: "})
+        if rule_triggered > 0:
+            await self.send_json({"type":"alert_attack", "rule_triggered": rule_triggered})
 
     async def metrics_update(self, event):
         # Real-time metrics

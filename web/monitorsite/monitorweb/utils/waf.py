@@ -21,9 +21,8 @@ class WAF:
             print(f"Error: {e}")
     @sync_to_async
     def detect_attack(self, request):
-        print("Detect start")
         # Check every rules
-        rules_triggered = []
+        rules_triggered = 0
         for rule in Rule.objects.all():
             operator = rule.operator
             rule_components = RuleComponent.objects.filter(rule=rule)
@@ -33,7 +32,7 @@ class WAF:
             if operator == Operator.AND.value:
                 result = True
                 for component in rule_components:
-                    match = re.search(component.regex, request[component.filter_field], re.IGNORECASE)
+                    match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
                     result = result and (match is not None) 
                     if match:
                         message += match.group() + ";"
@@ -43,14 +42,13 @@ class WAF:
             if operator == Operator.OR.value:
                 result = False
                 for component in rule_components:
-                    match = re.search(component.regex, request[component.filter_field], re.IGNORECASE)
+                    match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
                     result = result or (match is not None) 
                     if match:
                         message += match.group() + ";"
                     # print(component.regex, request[component.filter_field])
             
             if result:
-                rules_triggered.append(rule.name)
+                rules_triggered += 1
                 self.alert(request, rule, message)
-
-        return None if len(rules_triggered) == 0 else rules_triggered
+        return rules_triggered

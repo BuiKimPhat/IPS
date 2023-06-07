@@ -22,10 +22,6 @@
 {% endblock head %}
 
 {% block content %}
-<div class="d-flex w-100 align-items-center">
-    <h1 class="display-6"><i><b>IPS</b> Alerts</i></h1>
-    <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
-</div>
 
 {% if page_obj %}
 {% if search %}
@@ -89,6 +85,7 @@
 <table class="table table-hover">
     <thead>
         <tr>
+            <th scope="col">Rule class</th>
             <th scope="col">Rule triggered</th>
             <th scope="col">Agent</th>
             <th scope="col">Source IP</th>
@@ -100,7 +97,8 @@
     <tbody>
         {% for alert in page_obj %}
         <tr style="cursor: pointer;"><a href="#">
-                <th scope="row">{{alert.rule.name}}</th>
+                <td>{{alert.rule.rule_class}}</td>
+                <td>{{alert.rule.name}}</td>
                 <td>{{alert.agent.name}}</td>
                 <td>{{alert.remote_addr}}</td>
                 <td>{{alert.request}}</td>
