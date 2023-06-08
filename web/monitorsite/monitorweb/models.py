@@ -1,10 +1,6 @@
 from django.db import models
 from monitorweb.utils.enums import Request, Operator
-
-class Notification(models.Model):
-    def __str__(self):
-        return f"{self.title} - {self.message}"
-    name = models.CharField(max_length=200)
+from django.contrib.auth.models import User
 
 class Agent(models.Model):
     def __str__(self):
@@ -20,7 +16,7 @@ class Rule(models.Model):
         return f"{self.rule_class} - {self.name}"
     name = models.CharField(max_length=200)
     rule_class = models.CharField(max_length=300)
-    deny = models.BooleanField(default=True)
+    is_denied = models.BooleanField(default=True)
     ref = models.URLField(null=True,blank=True, max_length=500)
     description = models.CharField(null=True, blank=True, max_length=1000)
     OPERATOR_CHOICES = [
@@ -51,6 +47,8 @@ class Alert(models.Model):
         return f"{self.rule.rule_class} - {self.rule.name} - {self.agent.name}"
     agent = models.ForeignKey(Agent, on_delete=models.PROTECT)
     rule = models.ForeignKey(Rule, null=True, on_delete=models.SET_NULL)
+    is_processed = models.BooleanField(default=False)
+    processed_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     message = models.CharField(null=True,max_length=200)
     remote_user = models.CharField(blank=True,max_length=200)
     status = models.PositiveIntegerField()

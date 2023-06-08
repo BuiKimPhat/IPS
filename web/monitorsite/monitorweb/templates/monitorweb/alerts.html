@@ -28,6 +28,7 @@
 <h6 class="mt-3">Search result for: <i>{{search}}</i></h6>
 {% endif %}
 <nav aria-label="Page pagination" class="{% if search is None %}mt-3{% endif %} d-flex">
+    <a class="btn btn-outline-secondary mb-3 me-3">Mark all as processed</a>
     <form class="input-group mb-3" style="max-width: 400px;" onsubmit="return search(event);">
         <input id="search-content" type="text" class="form-control" placeholder="Search" aria-label="Search"
             aria-describedby="button-search">

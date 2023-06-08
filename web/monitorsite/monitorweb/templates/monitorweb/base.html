@@ -21,6 +21,16 @@
             border: 1px solid black;
         }
 
+        .dropdown-menu {
+            max-height: 80vh;
+            width: 40vw;
+            overflow-y: auto;
+        }
+
+        .dropdown-menu .dropdown-item {
+            white-space: normal;
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 10px;
@@ -103,16 +113,28 @@
                 <div class="ms-auto">
                     <i>Welcome, <b>{{user}}</b></i>
                     <div class="my-0 ms-3 d-inline dropdown">
-                        <a title="Notification" href="#" class="text-reset" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell"></i>
                             <span id="notification-bell" style="padding: 0.15rem 0.35rem" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                5
+                                {{new_alerts|length}}
                             </span>
                         </a>
-
-                        <ul class="dropdown-menu">
-                            <li><a href="#" class="dropdown-header">Mark as read</a></li>
-                            <li><a class="dropdown-item" href="#">Action</a></li>
+                        <ul id="alert-notification-dropdown" class="dropdown-menu">
+                            <li><a href="/alerts/" class="dropdown-header">Go to Alerts</a></li>
+                            {% if new_alerts %}
+                                {% for new_alert in new_alerts %}
+                                <li id="no-alert-noti"><a href="#" class="dropdown-item">
+                                    <div>
+                                        <b class="m-0">{{new_alert.rule.rule_class}} attack at agent {{new_alert.agent.name}}</b>
+                                        <p class="m-0">
+                                            Rule triggered: {{new_alert.rule.name}}. Action: {% if new_alert.rule.is_denied %}Denied{% else %}Allowed{% endif %}. {{new_alert.message}}
+                                        </p>
+                                    </div>
+                                </a></li>
+                                {% endfor %}
+                            {% else %}
+                            <li id="no-alert-noti"><a class="dropdown-item">No alert</a></li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>

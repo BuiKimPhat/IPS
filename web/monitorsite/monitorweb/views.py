@@ -36,30 +36,52 @@ def logout(request):
 
 @login_required
 def index(request):
-    context = {"page_header": "Dashboard"}
+    max_alert_noti = 10
+    new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
+    new_alerts_count = new_alerts.count()
+    if new_alerts_count > max_alert_noti:
+        new_alerts = new_alerts[:max_alert_noti]
+    context = {"page_header": "Dashboard", "new_alerts": new_alerts}
     return render(request, "monitorweb/index.html", context)    
 
 @login_required
 def agent_detail(request, agent_id):
+    max_alert_noti = 10
+    new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
+    new_alerts_count = new_alerts.count()
+    if new_alerts_count > max_alert_noti:
+        new_alerts = new_alerts[:max_alert_noti]
     agent = get_object_or_404(Agent, pk=agent_id)
-    context = {"agent": agent, "page_header": f"Agent {agent.name}"}
+    context = {"agent": agent, "page_header": f"Agent {agent.name}", "new_alerts": new_alerts}
     return render(request, "monitorweb/agent_detail.html", context)  
 
 @login_required
 def agents(request):
+    max_alert_noti = 10
+    max_agent_inpage = 40
+    new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
+    new_alerts_count = new_alerts.count()
+    if new_alerts_count > max_alert_noti:
+        new_alerts = new_alerts[:max_alert_noti]
     search = request.GET.get("search")
     if search is None:
         agent_list = Agent.objects.order_by("-registered_at")
     else: 
         agent_list = Agent.objects.filter(Q(name__icontains=search) | Q(ip__contains=search) | Q(health__icontains=search)).order_by("-registered_at")
 
-    paginator = Paginator(agent_list, 25)
+    paginator = Paginator(agent_list, max_agent_inpage)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "page_header": "Agents"})    
+    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "page_header": "Agents", "new_alerts": new_alerts})    
 
 @login_required
 def alerts(request):
+    max_alert_noti = 10
+    max_alert_inpage = 100
+    new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
+    new_alerts_count = new_alerts.count()
+    if new_alerts_count > max_alert_noti:
+        new_alerts = new_alerts[:max_alert_noti]
     alert_list = Alert.objects.order_by("-timestamp")
     search = request.GET.get("search")
     if search is None:
@@ -67,8 +89,8 @@ def alerts(request):
     else: 
         alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(rule__name__icontains=search) | Q(rule__class__icontains=search) | Q(agent__ip__contains=search) | Q(remote_addr__icontains=search) | Q(request__icontains=search) | Q(agent__name__icontains=search)).order_by("-timestamp")
 
-    paginator = Paginator(alert_list, 100)
+    paginator = Paginator(alert_list, max_alert_inpage)
 
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts"})    
+    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts", "new_alerts": new_alerts})    

@@ -28,7 +28,6 @@ const fetch_metrics = (charts) => {
 
   ws.onmessage = e => {
     const data = JSON.parse(e.data);
-    console.log(data)
     if (data.type == "metrics_update") {
       updateChart(charts.cpu, new Date(data.timestamp * 1000).toLocaleTimeString(), data.cpu_percent);
       updateChart(charts.memory, new Date(data.timestamp * 1000).toLocaleTimeString(), data.mem_percent);

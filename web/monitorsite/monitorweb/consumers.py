@@ -11,10 +11,12 @@ from channels.layers import get_channel_layer
 
 waf = WAF()
 
+notification_group_name = "ips_notification"
+
 class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
-        self.group_name = "ips_notification" if self.scope["path"] == "/ws/ips/notification/" else "ipsgroup_%s" % self.agent_name
+        self.group_name = notification_group_name if self.scope["path"] == "/ws/ips/notification/" else "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
 
         # Join agent and notification group
@@ -121,15 +123,17 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 }
 
                 # WAF
-                rules_triggered = await waf.detect_attack(req)
+                alerts = await waf.detect_attack(req)
+                # print(alerts)
 
                 # Send message to agent group
-                if len(rules_triggered) > 0:
+                if len(alerts) > 0:
+                    print(self.group_name)
                     await self.channel_layer.group_send(
-                        self.group_name, 
+                        notification_group_name, 
                         {   
                             "type": "alert_attack", 
-                            'rules_triggered': rules_triggered
+                            'alerts': alerts
                         }
                     )
                 # Update last active time
@@ -148,9 +152,10 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
     async def alert_attack(self, event):
         # New access log on nginx agent
-        rules_triggered = event['rules_triggered']
+        alerts = event['alerts']
+
         # Send alert to WebSocket
-        await self.send_json({"type":"alert_attack", "rules_triggered": rules_triggered})
+        await self.send_json({"type":"alert_attack", "alerts": alerts})
 
     async def metrics_update(self, event):
         # Real-time metrics
