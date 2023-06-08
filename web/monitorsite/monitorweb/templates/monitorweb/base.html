@@ -16,19 +16,24 @@
             -o-transition: all 0.4s ease-in-out;
             transition: all 0.4s ease-in-out;
         }
+
         .sidebar-nav:hover {
             border: 1px solid black;
         }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 10px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #888;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
@@ -64,8 +69,9 @@
                     </a>
                 </li>
                 <li class="pr-0 w-100 mr-0 py-3">
-                    <button id="collapseBtn" class="btn w-100 sidebar-nav" title="Expand" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarCollapse"
-                        aria-expanded="false" aria-controls="sidebarCollapse">
+                    <button id="collapseBtn" class="btn w-100 sidebar-nav" title="Expand" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#sidebarCollapse" aria-expanded="false"
+                        aria-controls="sidebarCollapse">
                         <i class="bi bi-fast-forward"></i>
                     </button>
                 </li>
@@ -89,14 +95,32 @@
             </div>
         </div>
         <!-- End sidebar -->
+
+        <!-- Begin content -->
         <div class="container-fluid">
             <div class="d-flex w-100 align-items-center">
                 <h1 class="display-6"><i><b>IPS</b> {{page_header}}</i></h1>
-                <div class="ms-auto"><i>Welcome, <b>{{user}}</b></i></div>
-            </div>            
+                <div class="ms-auto">
+                    <i>Welcome, <b>{{user}}</b></i>
+                    <div class="my-0 ms-3 d-inline dropdown">
+                        <a title="Notification" href="#" class="text-reset" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell"></i>
+                            <span id="notification-bell" style="padding: 0.15rem 0.35rem" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                5
+                            </span>
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <li><a href="#" class="dropdown-header">Mark as read</a></li>
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             {% block content %}
             {% endblock content %}
         </div>
+        <!-- End content -->
     </div>
     <script>
         var rotated = false;
@@ -122,6 +146,8 @@
             document.getElementById('collapseBtn').title = "Expand";
         })
     </script>
+    {% load static %}
+    <script src="{% static 'monitorweb/notification.js' %}"></script>
 </body>
 
 </html>

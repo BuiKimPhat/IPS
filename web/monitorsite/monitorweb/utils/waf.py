@@ -11,7 +11,8 @@ class WAF:
             agent = Agent.objects.get(name=request[Request.destination.value])
             new_alert = Alert(agent=agent, rule=rule, message=message, remote_user=request[Request.user.value], status=request[Request.status.value], body_bytes_sent=request[Request.bbs.value], request_time=request[Request.req_time.value], request=request[Request.url.value], body=request[Request.body.value], headers=request[Request.headers.value], remote_addr=request[Request.ip.value])
             new_alert.save()
-            print(f"Alert: {new_alert}")
+            print(f"Alert: {new_alert.id}")
+            return new_alert.id
         except Exception as e:
             print(f"Error: {e}")
 
@@ -46,6 +47,6 @@ class WAF:
                     # print(component.regex, request[component.filter_field])
             
             if result:
-                rules_triggered.append({"name": rule.name, "rule_class": rule.rule_class, "deny": rule.deny})
-                self.create_alert(request, rule, message)
+                new_alert_id = self.create_alert(request, rule, message)
+                rules_triggered.append({"name": rule.name, "rule_class": rule.rule_class, "deny": rule.deny, "id": new_alert_id})
         return rules_triggered

@@ -11,63 +11,25 @@ from channels.layers import get_channel_layer
 
 waf = WAF()
 
-notification_group_name = "ips_notification"
-
-class NotiConsumer(AsyncJsonWebsocketConsumer):
-    async def connect(self):
-        # Join noti group
-        print("Connected")
-        await self.channel_layer.group_add(notification_group_name, self.channel_name)
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        # Leave noti group
-        print("Disconnected")
-
-        await self.channel_layer.group_discard(notification_group_name, self.channel_name)
-    async def receive_json(self, text_data_json):
-        try:
-            print(text_data_json)
-            rules_triggered = text_data_json["rules_triggered"]
-            await self.channel_layer.group_send(
-                notification_group_name, 
-                {   
-                    "type": "alert_attack", 
-                    "rules_triggered": rules_triggered
-                }
-            )
-        except Exception as e:
-            print("Unexpected error! ", e)
-    async def alert_attack(self, event):
-        # Alert attacks
-        rules_triggered = event["rules_triggered"]
-
-        # Send message to WebSocket
-        await self.send_json({   
-            "type": "alert_attack",
-            "rules_triggered": rules_triggered
-        })
-
-
 class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
-        self.agent_group_name = "ipsgroup_%s" % self.agent_name
+        self.group_name = "ips_notification" if self.scope["path"] == "/ws/ips/notification/" else "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
 
-        # Join agent group
-        await self.channel_layer.group_add(self.agent_group_name, self.channel_name)
+        # Join agent and notification group
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+
         await self.accept()
 
     async def disconnect(self, close_code):
         # Leave agent group
-        await self.channel_layer.group_discard(self.agent_group_name, self.channel_name)
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     # Receive message from WebSocket
     async def receive_json(self, text_data_json):
         try:
             # print(text_data_json)
-
             # Register agent
             if text_data_json["type"] == "agent_register":
                 agent_name = text_data_json["agent_name"]
@@ -81,7 +43,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                         self.validate(agent_health)
                     except ValidationError:
                         await self.channel_layer.group_send(
-                            self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Incorrect URL format for health check. Health check URL must be in a full URL form (example: https://www.example.com)."}
+                            self.group_name, {"type": "agent_register", "message": f"ERROR: Incorrect URL format for health check. Health check URL must be in a full URL form (example: https://www.example.com)."}
                         )
 
                 try:
@@ -95,17 +57,17 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                     new_agent = Agent(name=agent_name, ip=agent_ip, health=agent_health, status=agent_status)
                     await new_agent.asave()
                     await self.channel_layer.group_send(
-                        self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} has been registered successfully!"}
+                        self.group_name, {"type": "agent_register", "message": f"Agent {agent_name} has been registered successfully!"}
                     )
                 else:
                     # Respond message
                     if agent_ip == obj.ip and agent_name != obj.name:
                         await self.channel_layer.group_send(
-                            self.agent_group_name, {"type": "agent_register", "message": f"Agent {agent_name} was already registered with name '{obj.name}'. Messages will be sent to agent '{obj.name}'"}
+                            self.group_name, {"type": "agent_register", "message": f"Agent {agent_name} was already registered with name '{obj.name}'. Messages will be sent to agent '{obj.name}'"}
                         )
                     if agent_name == obj.name and agent_ip != obj.ip:
                         await self.channel_layer.group_send(
-                            self.agent_group_name, {"type": "agent_register", "message": f"ERROR: Agent name '{agent_name}' was already registered. Please choose a different name for your agent."}
+                            self.group_name, {"type": "agent_register", "message": f"ERROR: Agent name '{agent_name}' was already registered. Please choose a different name for your agent."}
                         )
                     if agent_name == obj.name and agent_ip == obj.ip:
                         # Update health check URL
@@ -113,7 +75,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                         await obj.asave()
 
                         await self.channel_layer.group_send(
-                            self.agent_group_name, {"type": "agent_register", "message": f"Successfully connected to WebSocket server."}
+                            self.group_name, {"type": "agent_register", "message": f"Successfully connected to WebSocket server."}
                         )
 
 
@@ -128,7 +90,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 timestamp = text_data_json["timestamp"]
                 # Send message to agent group
                 await self.channel_layer.group_send(
-                    self.agent_group_name, 
+                    self.group_name, 
                     {   
                         "type": "metrics_update", 
                         "cpu_percent": cpu_percent,
@@ -160,13 +122,11 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
                 # WAF
                 rules_triggered = await waf.detect_attack(req)
-                # print(rules_triggered)
 
                 # Send message to agent group
                 if len(rules_triggered) > 0:
-                    print(self.channel_name)
                     await self.channel_layer.group_send(
-                        notification_group_name, 
+                        self.group_name, 
                         {   
                             "type": "alert_attack", 
                             'rules_triggered': rules_triggered
@@ -179,24 +139,21 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
             print("Unexpected error! ", e)
 
     # Handlers called with each connected client in the channel 
-    # Receive message from agent group
+    # Received message from group
     async def agent_register(self, event):
         # Register agent
         message = event["message"]
-        
         # Send message to WebSocket
         await self.send_json({"type":"agent_register","message": message})
 
     async def alert_attack(self, event):
         # New access log on nginx agent
         rules_triggered = event['rules_triggered']
-        
         # Send alert to WebSocket
         await self.send_json({"type":"alert_attack", "rules_triggered": rules_triggered})
 
     async def metrics_update(self, event):
         # Real-time metrics
-        
         cpu_percent = event["cpu_percent"]
         mem_percent = event["mem_percent"]
         disk_read = event["disk_read"]
