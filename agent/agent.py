@@ -110,7 +110,7 @@ class IPSAgent:
                             net_in = 0
 
                         # Check the ModSecurity audit log for new security events
-                        with open(self.log_path) as f:
+                        with open(self.log_path, 'rb') as f:
                             if last_line_num == 0:
                                 f.seek(last_line_num, 2)
                             else:
