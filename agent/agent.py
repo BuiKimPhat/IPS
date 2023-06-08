@@ -142,7 +142,7 @@ class IPSAgent:
             except Exception as e:
                 connected = False
                 print("Error: ", e)
-                await asyncio.sleep(5) # 5 seconds delay before attempting to reconnect
+                await asyncio.sleep(3) # 3 seconds delay before attempting to reconnect
                 print("Reconnecting...")
 
 if __name__ == '__main__':
