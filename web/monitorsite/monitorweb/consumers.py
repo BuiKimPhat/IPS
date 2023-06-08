@@ -124,11 +124,9 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
                 # WAF
                 alerts = await waf.detect_attack(req)
-                # print(alerts)
 
                 # Send message to agent group
                 if len(alerts) > 0:
-                    print(self.group_name)
                     await self.channel_layer.group_send(
                         notification_group_name, 
                         {   

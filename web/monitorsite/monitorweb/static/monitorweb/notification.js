@@ -1,5 +1,7 @@
 // Desktop notification
+const notify = () => {
 
+}
 // Socket
 const dropdown_child = data => {
     let li = document.createElement('li');
@@ -13,7 +15,7 @@ const dropdown_child = data => {
     let content = document.createElement('p');
     content.className = "m-0";
     content.textContent = "Rule triggered: " + data.rule_name + ". Action: " + 
-                            ("Denied. " ? data.is_denied : "Allowed. ") + data.message;
+                            (data.is_denied ? "Denied. " : "Allowed. ") + data.message;
     div.appendChild(header);
     div.appendChild(content);
     a.appendChild(div)
@@ -23,39 +25,35 @@ const dropdown_child = data => {
 
 const update_dropdown_list = (data, max_noti) => {
     const noti_dropdown = document.getElementById("alert-notification-dropdown");
-    data.alerts.map(item => {
-        noti_dropdown.appendChild(dropdown_child(item))
-    });
+    const exist_alerts = Array.from(document.getElementsByClassName('dropdown-item')).map(item => item.parentElement.cloneNode(true));
+    
+    const nodes = data.alerts.map(item => dropdown_child(item));
     // Concat if there are existing alerts
-    let tmp = data.alerts.concat(Array.from(document.getElementsByTagName('dropdown-item')));
-    // Delete existing alerts
-    for (let i=1; i<=max_noti; i++){
-        noti_dropdown.removeChild(noti_dropdown.chilren[i])
-    }
+    let tmp = nodes.concat(exist_alerts);
+    // Delete existing alerts, don't display the placeholder
+    if (exist_alerts.length > 0) {
+        for (let i=0; i < exist_alerts.length; i++){
+            noti_dropdown.removeChild(noti_dropdown.children[1])
+        }    
+    } else noti_dropdown.removeChild(noti_dropdown.children[1]); // Remove "No alert" placeholder
     // Append latest alerts
-    for (let i=0; i<max_noti; i++){
+    for (let i=0; i < (max_noti <= tmp.length ? max_noti : tmp.length); i++){
         noti_dropdown.appendChild(tmp[i])
     }
-    if (noti_dropdown.childElementCount > 2) document.getElementById('no-alert-noti').style.display = 'none';
-    else document.getElementById('no-alert-noti').style.display = 'block';
 }
 
 const update_badge = (max_noti) => {
-    const noti_dropdown = document.getElementById("alert-notification-dropdown");
+    const new_alerts_num = document.getElementsByClassName('dropdown-item').length;
     const badge = document.getElementById("notification-bell");
-    if (noti_dropdown.childElementCount <= 2) badge.style.display = 'none';
+    if (new_alerts_num == 0) badge.style.display = 'none';
     else {
-        let tmp_num = noti_dropdown.childElementCount - 2;
-        badge.textContent = String(tmp_num) ? tmp_num <= max_noti : String(max_noti)+"+";
+        badge.textContent = new_alerts_num < max_noti ? new_alerts_num.toString() : max_noti.toString()+"+";
         badge.style.display = 'block';
     }
 }
 
-const notify = () => {
-
-}
-
 const fetch_notification = () => {
+    update_badge(15);
     const ws = new WebSocket('ws://' + window.location.host + '/ws/ips/notification/');
     ws.onopen = () => {
         console.log('Connected to notification group.')
@@ -64,8 +62,9 @@ const fetch_notification = () => {
     ws.onmessage = e => {
         const data = JSON.parse(e.data);
         if (data.type == "alert_attack") {
-            update_dropdown_list(data, 10);
-            update_badge(10);
+            update_dropdown_list(data, 15);
+            update_badge(15);
+            document.getElementById('notify-sound').play();
         }
     };
 

@@ -115,15 +115,15 @@
                     <div class="my-0 ms-3 d-inline dropdown">
                         <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell"></i>
-                            <span id="notification-bell" style="padding: 0.15rem 0.35rem" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{new_alerts|length}}
+                            <span id="notification-bell" style="padding: 0.15rem 0.3rem" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                0
                             </span>
                         </a>
                         <ul id="alert-notification-dropdown" class="dropdown-menu">
                             <li><a href="/alerts/" class="dropdown-header">Go to Alerts</a></li>
                             {% if new_alerts %}
                                 {% for new_alert in new_alerts %}
-                                <li id="no-alert-noti"><a href="#" class="dropdown-item">
+                                <li><a href="#" class="dropdown-item">
                                     <div>
                                         <b class="m-0">{{new_alert.rule.rule_class}} attack at agent {{new_alert.agent.name}}</b>
                                         <p class="m-0">
@@ -133,9 +133,14 @@
                                 </a></li>
                                 {% endfor %}
                             {% else %}
-                            <li id="no-alert-noti"><a class="dropdown-item">No alert</a></li>
+                            <li id="no-alert-noti"><span class="p-3">No alert</span></li>
                             {% endif %}
                         </ul>
+                        <audio id="notify-sound" style="display: none;">
+                            {% load static %}
+                            <source src="{% static 'monitorweb/notify.mp3' %}" type="audio/mpeg">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                 </div>
             </div>
@@ -168,7 +173,6 @@
             document.getElementById('collapseBtn').title = "Expand";
         })
     </script>
-    {% load static %}
     <script src="{% static 'monitorweb/notification.js' %}"></script>
 </body>
 

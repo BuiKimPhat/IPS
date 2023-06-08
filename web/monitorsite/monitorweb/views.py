@@ -36,7 +36,7 @@ def logout(request):
 
 @login_required
 def index(request):
-    max_alert_noti = 10
+    max_alert_noti = 15
     new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
     new_alerts_count = new_alerts.count()
     if new_alerts_count > max_alert_noti:
@@ -46,7 +46,7 @@ def index(request):
 
 @login_required
 def agent_detail(request, agent_id):
-    max_alert_noti = 10
+    max_alert_noti = 15
     new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
     new_alerts_count = new_alerts.count()
     if new_alerts_count > max_alert_noti:
@@ -57,7 +57,7 @@ def agent_detail(request, agent_id):
 
 @login_required
 def agents(request):
-    max_alert_noti = 10
+    max_alert_noti = 15
     max_agent_inpage = 40
     new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
     new_alerts_count = new_alerts.count()
@@ -76,7 +76,7 @@ def agents(request):
 
 @login_required
 def alerts(request):
-    max_alert_noti = 10
+    max_alert_noti = 15
     max_alert_inpage = 100
     new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
     new_alerts_count = new_alerts.count()
@@ -94,3 +94,12 @@ def alerts(request):
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
     return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts", "new_alerts": new_alerts})    
+
+# APIs
+@login_required
+def mark_alerts(request):
+    try:
+        Alert.objects.filter(is_processed=False).update(is_processed=True)
+    except Exception as e:
+        print(e)
+    return redirect("monitorweb:alerts")
