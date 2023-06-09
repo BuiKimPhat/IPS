@@ -48,6 +48,7 @@
             background: #555;
         }
     </style>
+    {% load static %}
 
     {% block head %}
     {% endblock head %}
@@ -116,8 +117,8 @@
                         <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
                             <i class="bi bi-bell"></i>
-                            <span id="notification-bell" style="padding: 0.15rem 0.3rem"
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                            <span id="notification-bell" style="padding: 0.15rem 0.3rem; display: none;"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 0
                             </span>
                         </a>
@@ -141,7 +142,6 @@
                             {% endif %}
                         </ul>
                         <audio id="notify-sound" style="display: none;">
-                            {% load static %}
                             <source src="{% static 'monitorweb/notify.mp3' %}" type="audio/mpeg">
                             Your browser does not support the audio tag.
                         </audio>
@@ -149,21 +149,8 @@
                 </div>
             </div>
             <!-- Notification toasts -->
-            <button type="button" class="btn btn-primary" id="liveToastBtn">Show live toast</button>
-
             <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3">
-            </div>
-            <script>
-                const toastTrigger = document.getElementById('liveToastBtn')
-                const toastLiveExample = document.getElementById('liveToast')
-
-                if (toastTrigger) {
-                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
-                toastTrigger.addEventListener('click', () => {
-                    toastBootstrap.show()
-                })
-                }
-            </script>            
+            </div>       
             <!-- End notification toasts -->
             {% block content %}
             {% endblock content %}
