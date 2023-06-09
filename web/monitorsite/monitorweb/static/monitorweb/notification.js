@@ -1,6 +1,6 @@
 // Desktop notification
 const notify = () => {
-
+    
 }
 // Socket
 const dropdown_child = data => {
@@ -21,6 +21,40 @@ const dropdown_child = data => {
     a.appendChild(div)
     li.appendChild(a);
     return li
+}
+
+const toast_child = data => {
+    let toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.role = 'alert';
+    toast.ariaLive = 'assertive';
+    toast.ariaAtomic = 'true';
+    let header = document.createElement('div');
+    header.className = 'toast-header';
+    let icon = document.createElement('i');
+    icon.className = 'bi bi-bell me-2';
+    let title = document.createElement('strong');
+    title.className = 'me-auto';
+    title.textContent = data.rule_class + " attack at agent " + data.agent_name;
+    let closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.ariaLabel = 'Close';
+    closeBtn.setAttribute("data-bs-dismiss", "toast");
+    let body = document.createElement('div');
+    body.className = 'toast-body';
+    body.textContent = "Rule triggered: " + data.rule_name + ". Action: " + 
+                        (data.is_denied ? "Denied. " : "Allowed. ") + data.message;
+
+    header.appendChild(icon);
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    toast.appendChild(header);
+    toast.appendChild(body);
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    })
+    return toast;
 }
 
 const update_dropdown_list = (data, max_noti) => {
@@ -52,6 +86,24 @@ const update_badge = (max_noti) => {
     }
 }
 
+const update_toasts = (data, max_toast) => {
+    const toast_container = document.getElementById("toast-container");
+    const new_toasts = data.alerts.map(item => toast_child(item));
+
+    if (toast_container.childElementCount >= max_toast){
+        for (let i=0;i<toast_container.childElementCount;i++){
+            const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toast_container.children[i]);
+            toastBootstrap.hide();
+        }
+    }
+
+    for (let i=0; i < (max_toast <= new_toasts.length ? max_toast : new_toasts.length); i++){
+        toast_container.appendChild(new_toasts[i]);
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(new_toasts[i]);
+        toastBootstrap.show();
+    }
+}
+
 const fetch_notification = () => {
     update_badge(15);
     const ws = new WebSocket('ws://' + window.location.host + '/ws/ips/notification/');
@@ -64,6 +116,7 @@ const fetch_notification = () => {
         if (data.type == "alert_attack") {
             update_dropdown_list(data, 15);
             update_badge(15);
+            update_toasts(data, 4);
             document.getElementById('notify-sound').play();
         }
     };

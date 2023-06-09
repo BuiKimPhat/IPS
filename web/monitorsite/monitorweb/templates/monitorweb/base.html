@@ -113,25 +113,29 @@
                 <div class="ms-auto">
                     <i>Welcome, <b>{{user}}</b></i>
                     <div class="my-0 ms-3 d-inline dropdown">
-                        <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
                             <i class="bi bi-bell"></i>
-                            <span id="notification-bell" style="padding: 0.15rem 0.3rem" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <span id="notification-bell" style="padding: 0.15rem 0.3rem"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                                 0
                             </span>
                         </a>
                         <ul id="alert-notification-dropdown" class="dropdown-menu">
                             <li><a href="/alerts/" class="dropdown-header">Go to Alerts</a></li>
                             {% if new_alerts %}
-                                {% for new_alert in new_alerts %}
-                                <li><a href="#" class="dropdown-item">
+                            {% for new_alert in new_alerts %}
+                            <li><a href="#" class="dropdown-item">
                                     <div>
-                                        <b class="m-0">{{new_alert.rule.rule_class}} attack at agent {{new_alert.agent.name}}</b>
+                                        <b class="m-0">{{new_alert.rule.rule_class}} attack at agent
+                                            {{new_alert.agent.name}}</b>
                                         <p class="m-0">
-                                            Rule triggered: {{new_alert.rule.name}}. Action: {% if new_alert.rule.is_denied %}Denied{% else %}Allowed{% endif %}. {{new_alert.message}}
+                                            Rule triggered: {{new_alert.rule.name}}. Action: {% if new_alert.rule.is_denied %}Denied{% else %}Allowed{% endif %}.
+                                            {{new_alert.message}}
                                         </p>
                                     </div>
                                 </a></li>
-                                {% endfor %}
+                            {% endfor %}
                             {% else %}
                             <li id="no-alert-noti"><span class="p-3">No alert</span></li>
                             {% endif %}
@@ -144,6 +148,23 @@
                     </div>
                 </div>
             </div>
+            <!-- Notification toasts -->
+            <button type="button" class="btn btn-primary" id="liveToastBtn">Show live toast</button>
+
+            <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3">
+            </div>
+            <script>
+                const toastTrigger = document.getElementById('liveToastBtn')
+                const toastLiveExample = document.getElementById('liveToast')
+
+                if (toastTrigger) {
+                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+                toastTrigger.addEventListener('click', () => {
+                    toastBootstrap.show()
+                })
+                }
+            </script>            
+            <!-- End notification toasts -->
             {% block content %}
             {% endblock content %}
         </div>
