@@ -99,7 +99,7 @@ def alerts(request):
 @login_required
 def mark_alerts(request):
     try:
-        Alert.objects.filter(is_processed=False).update(is_processed=True)
+        Alert.objects.filter(is_processed=False).update(is_processed=True, processed_by=request.user)
     except Exception as e:
         print(e)
     return redirect("monitorweb:alerts")

@@ -11,7 +11,13 @@
 </div>
 <script>
     const ctx = document.getElementById('alertChart');
-
+    /*
+        Statistics:
+        - Number of all unprocessed alerts.
+        - Number of unhealthy agents.
+        - Number of rules set.
+        - Number of alerts in a specific time periods for each agents.
+    */
     new Chart(ctx, {
         type: 'line',
         data: {

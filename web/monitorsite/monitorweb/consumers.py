@@ -1,7 +1,7 @@
 import json
 import time
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from .models import Agent, Alert
+from .models import Agent, Alert, Rule
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 import re
@@ -12,11 +12,24 @@ from channels.layers import get_channel_layer
 waf = WAF()
 
 notification_group_name = "ips_notification"
+statistics_group_name = "ips_statistics"
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
+    async def fetch_stats(self, update_interval=300, eval_range=300):
+        unprocessed = Alert.objects.filter(is_processed=False).count()
+        unhealthy = Agent.objects.filter(status='Unhealthy').count()
+        rules_set = Rule.objects.all().count()
+        
+        while True:
+            time.sleep(self.update_interval)
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
-        self.group_name = notification_group_name if self.scope["path"] == "/ws/ips/notification/" else "ipsgroup_%s" % self.agent_name
+        if self.scope["path"] == "/ws/ips/notification/":
+            self.group_name = notification_group_name
+        elif self.scope["path"] == "/ws/ips/statistics/":
+            self.group_name = statistics_group_name
+        else:
+            self.group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
 
         # Join agent and notification group
@@ -136,6 +149,9 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                     )
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
+
+            # Dashboard statistics
+
 
         except Exception as e:
             print("Unexpected error! ", e)
