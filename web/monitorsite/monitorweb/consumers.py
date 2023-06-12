@@ -17,41 +17,46 @@ notification_group_name = "ips_notification"
 statistics_group_name = "ips_statistics"
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
-    async def fetch_stats(self, update_interval=300, eval_range=300):        
-        while True:
-            unprocessed = Alert.objects.filter(is_processed=False).count()
-            unhealthy = Agent.objects.filter(status='Unhealthy').count()
-            rules_set = Rule.objects.all().count()
-            endtime = datetime.datetime.now()
-            starttime = endtime - datetime.timedelta(seconds=eval_range) 
-            alerts = Alert.objects.filter(Q(timestamp__range=(starttime,endtime))).select_related('agent').values('agent__name').annotate(count=Count('id')).order_by('-count')
-
-            stats = {
-                "unprocessed": unprocessed,
-                "unhealthy": unhealthy,
-                "rules_set": rules_set,
-                "alert_num": list(alerts),
-                "timestamp": endtime.strftime("%m-%d %H:%M:%S")
-            }
-            await self.channel_layer.group_send(
-                    self.group_name, 
-                    {   
-                        "type": "dashboard_update", 
-                        "unprocessed": unprocessed,
-                        "unhealthy": unhealthy,
-                        "rules_set": rules_set,
-                        "alert_num": list(alerts),
-                        "timestamp": endtime.strftime("%m-%d %H:%M:%S")
-                    }
-                )
-            await asyncio.sleep(update_interval)
+    async def fetch_stats(self, update_interval=300, eval_range=300, max_agent=15):      
+        # Statistics for dashboard page 
+        try:
+            while True:
+                unprocessed = Alert.objects.filter(is_processed=False).count()
+                agent_num = Agent.objects.all().count()
+                rules_set = Rule.objects.all().count()
+                endtime = datetime.datetime.now()
+                starttime = endtime - datetime.timedelta(seconds=eval_range) 
+                healthy = Agent.objects.filter(status='Healthy').values('name')
+                alerts = Alert.objects.filter(Q(timestamp__range=(starttime,endtime)) & Q(status='Healthy')).select_related('agent').values('agent__name').annotate(count=Count('id')).order_by('-agent__registered_at')
+                agent_num = []
+                for agent in healthy:
+                    for alert in alerts:
+                        if alert.agent__name == agent.name:
+                            agent_num.append({"agent__name": agent.name, "count": alerts})
+                        else:
+                            agent_num.append({"agent__name": agent.name, "count": 0})
+                
+                await self.channel_layer.group_send(
+                        self.group_name, 
+                        {   
+                            "type": "dashboard_update", 
+                            "unprocessed": unprocessed,
+                            "agent_num": agent_num,
+                            "rules_set": rules_set,
+                            "alert_num": list(alerts) if len(list(alerts)) <= max_agent else list(alerts)[:max_agent],
+                            "timestamp": endtime.strftime("%m-%d %H:%M:%S")
+                        }
+                    )
+                await asyncio.sleep(update_interval)
+        except asyncio.CancelledError:
+            print("Statistics sending task cancelled.")
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         if self.scope["path"] == "/ws/ips/notification/":
             self.group_name = notification_group_name
         elif self.scope["path"] == "/ws/ips/statistics/":
             self.group_name = statistics_group_name
-            asyncio.run(self.fetch_stats())
+            self.stat_task = asyncio.create_task(self.fetch_stats())
         else:
             self.group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
@@ -65,6 +70,8 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, close_code):
         # Leave group
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if self.scope["path"] == "/ws/ips/statistics/":
+            self.stat_task.cancel()
 
     # Receive message from WebSocket
     async def receive_json(self, text_data_json):

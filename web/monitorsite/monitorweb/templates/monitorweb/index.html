@@ -6,6 +6,7 @@
 {% endblock head %}
 
 {% block content %}
+
 <div>
     <canvas id="alertChart"></canvas>
 </div>
@@ -18,24 +19,29 @@
         - Number of rules set.
         - Number of alerts in a specific time periods for each agents.
     */
-    new Chart(ctx, {
+    const alertChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', "White"],
-            datasets: [{
-                label: 'My First Dataset',
-                data: [65, 59, 80, 81, 56, 55, 40],
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)'
-            }]
+            labels: [],
+            datasets: []
         },
         options: {
             scales: {
                 y: {
                     beginAtZero: true
                 }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Number of alerts on each agent during the last 5 minutes'
+                }
             }
         }
     });
 </script>
+
+{% load static %}
+<script src="{% static 'monitorweb/dashboard.js' %}"></script>
+
 {% endblock content %}
