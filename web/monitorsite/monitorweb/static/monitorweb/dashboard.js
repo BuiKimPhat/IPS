@@ -35,7 +35,7 @@ const addData = (chart, label, data) => {
     // Add data if agent array did not change
     chart.data.datasets.forEach((dataset) => {
       data.alert_num.forEach((item) => {
-        if (dataset.label == item.agent__name) dataset.data.push(data);
+        if (dataset.label == item.agent__name) dataset.data.push(item.count);
       });
     });  
   }
@@ -51,12 +51,21 @@ const removeData = chart => {
 
 const updateChart = (chart, label, data) => {
   const max_data_point = 48;
-  if (chart.data.datasets[0].data.length >= max_data_point) removeData(chart);
   addData(chart, label, data);
+  if (chart.data.datasets[0].data.length > max_data_point) removeData(chart);
   chart.update();
 }
 
-const fetch_stats = (chart) => {
+const updateStats = (piechart,data) => {
+  document.getElementById("unprocessedNum").textContent = data.unprocessed.toString();
+  if (data.unprocessed == 0) document.getElementById("unprocessedNum").style.color = '#4bc0c0';
+  else document.getElementById("unprocessedNum").style.color = '#dc3545';
+  document.getElementById("ruleNum").textContent = data.rules_set.toString();
+  piechart.data.datasets[0].data = [data.healthy, data.agent_num - data.healthy];
+  piechart.update();
+}
+
+const fetch_stats = (charts) => {
   const ws = new WebSocket('ws://' + window.location.host + '/ws/ips/statistics/');
   ws.onopen = () => {
     console.log('Connected to statistics group.')
@@ -64,9 +73,10 @@ const fetch_stats = (chart) => {
 
   ws.onmessage = e => {
     const data = JSON.parse(e.data);
-    console.log(data);
+    // console.log(data);
     if (data.type == "dashboard_update") {
-      updateChart(chart, data.timestamp, data.alert_num);
+      updateChart(charts.alert_num, data.timestamp, data);
+      updateStats(charts.healthy, data);
     }
   };
 
@@ -83,4 +93,4 @@ const fetch_stats = (chart) => {
   };
 };
 
-fetch_stats(alertChart);
+fetch_stats(charts);

@@ -10,6 +10,7 @@ from channels.layers import get_channel_layer
 from django.core.validators import URLValidator
 import asyncio
 import datetime
+import traceback
 
 waf = WAF()
 
@@ -17,24 +18,27 @@ notification_group_name = "ips_notification"
 statistics_group_name = "ips_statistics"
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
-    async def fetch_stats(self, update_interval=300, eval_range=300, max_agent=15):      
+    async def fetch_stats(self, update_interval=300, eval_range=300, max_agent=15): 
         # Statistics for dashboard page 
         try:
             while True:
-                unprocessed = Alert.objects.filter(is_processed=False).count()
-                agent_num = Agent.objects.all().count()
-                rules_set = Rule.objects.all().count()
+                unprocessed = await Alert.objects.filter(is_processed=False).acount()
+                agent_num = await Agent.objects.all().acount()
+                rules_set = await Rule.objects.all().acount()
                 endtime = datetime.datetime.now()
                 starttime = endtime - datetime.timedelta(seconds=eval_range) 
                 healthy = Agent.objects.filter(status='Healthy').values('name')
-                alerts = Alert.objects.filter(Q(timestamp__range=(starttime,endtime)) & Q(status='Healthy')).select_related('agent').values('agent__name').annotate(count=Count('id')).order_by('-agent__registered_at')
-                agent_num = []
-                for agent in healthy:
-                    for alert in alerts:
-                        if alert.agent__name == agent.name:
-                            agent_num.append({"agent__name": agent.name, "count": alerts})
-                        else:
-                            agent_num.append({"agent__name": agent.name, "count": 0})
+                alerts = Alert.objects.filter(Q(timestamp__range=(starttime,endtime)) & Q(agent__status='Healthy')).select_related('agent').values('agent__name').annotate(count=Count('id')).order_by('-agent__registered_at')
+                alert_num = []
+                async for agent in healthy:
+                    isIn = False
+                    async for alert in alerts:
+                        if alert['agent__name'] == agent["name"]:
+                            isIn = True
+                            alert_num.append({"agent__name": agent["name"], "count": alert['count']})
+                            break
+                    if not isIn:
+                        alert_num.append({"agent__name": agent["name"], "count": 0})
                 
                 await self.channel_layer.group_send(
                         self.group_name, 
@@ -42,21 +46,24 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                             "type": "dashboard_update", 
                             "unprocessed": unprocessed,
                             "agent_num": agent_num,
+                            "healthy": healthy.count(),
                             "rules_set": rules_set,
-                            "alert_num": list(alerts) if len(list(alerts)) <= max_agent else list(alerts)[:max_agent],
+                            "alert_num": alert_num if len(alert_num) <= max_agent else alert_num[:max_agent],
                             "timestamp": endtime.strftime("%m-%d %H:%M:%S")
                         }
                     )
                 await asyncio.sleep(update_interval)
         except asyncio.CancelledError:
             print("Statistics sending task cancelled.")
+        except Exception:
+            print(traceback.format_exc())
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         if self.scope["path"] == "/ws/ips/notification/":
             self.group_name = notification_group_name
         elif self.scope["path"] == "/ws/ips/statistics/":
             self.group_name = statistics_group_name
-            self.stat_task = asyncio.create_task(self.fetch_stats())
+            self.stat_task = asyncio.create_task(self.fetch_stats(update_interval=10))
         else:
             self.group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
@@ -202,6 +209,26 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
         # Send alert to WebSocket
         await self.send_json({"type":"alert_attack", "alerts": alerts})
+
+    async def dashboard_update(self, event):
+        # Dashboard updates
+        unprocessed = event["unprocessed"]
+        agent_num = event["agent_num"]
+        healthy = event["agent_num"]
+        rules_set = event["rules_set"]
+        alert_num = event["alert_num"]
+        timestamp = event["timestamp"]
+
+        # Send message to WebSocket
+        await self.send_json({   
+                "type": "dashboard_update",
+                "unprocessed": unprocessed,
+                "agent_num": agent_num,
+                "healthy": healthy,
+                "rules_set": rules_set,
+                "alert_num": alert_num,
+                "timestamp": timestamp
+            })
 
     async def metrics_update(self, event):
         # Real-time metrics

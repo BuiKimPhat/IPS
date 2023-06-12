@@ -6,12 +6,38 @@
 {% endblock head %}
 
 {% block content %}
-
-<div>
-    <canvas id="alertChart"></canvas>
+<div class="d-flex justify-content-evenly">
+    <div class="card m-3 w-25">
+        <a href="/alerts/" class="text-reset text-center"><h5 class="card-header">Alerts</h5></a>
+        <div class="card-body d-flex">
+            <div class="m-auto">
+                <h1 id="unprocessedNum" class="card-title text-center display-2">0</h1>
+                <p class="card-text text-center">unprocessed alerts.</p>    
+            </div>
+        </div>
+    </div>
+    <div class="card m-3 w-25">
+        <a href="/agents/" class="text-reset text-center"><h5 class="card-header">Agents</h5></a>
+        <div class="card-body d-flex">
+            <div style="height: 20vh;" class="m-auto">
+                <canvas id="healthyChart"></canvas>
+            </div>            
+        </div>
+    </div>
+    <div class="card m-3 w-25">
+        <a href="/admin/monitorweb/rule/" class="text-reset text-center"><h5 class="card-header">Rules</h5></a>
+        <div class="card-body d-flex">
+            <div class="m-auto">
+                <h1 id="ruleNum" style="color: #0698ec;" class="card-title text-center display-2">0</h1>
+                <p class="card-text text-center">rules set.</p>    
+            </div>
+        </div>
+    </div>
 </div>
+<div style="height: 60vh;">
+    <canvas id="alertChart"></canvas>
+</div>        
 <script>
-    const ctx = document.getElementById('alertChart');
     /*
         Statistics:
         - Number of all unprocessed alerts.
@@ -19,6 +45,7 @@
         - Number of rules set.
         - Number of alerts in a specific time periods for each agents.
     */
+    const ctx = document.getElementById('alertChart');
     const alertChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -26,6 +53,7 @@
             datasets: []
         },
         options: {
+            animation: false,
             scales: {
                 y: {
                     beginAtZero: true
@@ -39,6 +67,23 @@
             }
         }
     });
+
+    const healthyctx = document.getElementById('healthyChart');
+    const healthyChart = new Chart(healthyctx, {
+        type: 'pie',
+        data: {
+            labels: ['Healthy', 'Unhealthy'],
+            datasets: [{
+                data: [],
+                backgroundColor: ["#4bc0c0", "#ff6384"]
+            }]
+        }
+    });
+
+    const charts = {
+        alert_num: alertChart,
+        healthy: healthyChart
+    }
 </script>
 
 {% load static %}
