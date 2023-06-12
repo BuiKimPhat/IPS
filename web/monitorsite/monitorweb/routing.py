@@ -4,7 +4,7 @@ from django.urls import re_path
 from . import consumers
 from monitorweb.utils.status_check import AgentStatusUpdater
 
-# Create an instance of the AgentStatusUpdater class
+# Run Agent status updater
 status_updater = AgentStatusUpdater()
 thread = threading.Thread(target=status_updater.start)
 thread.start()

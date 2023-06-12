@@ -19,7 +19,7 @@ class AgentStatusUpdater:
                 healthy = True
 
                 # Health check URL
-                if agent.health != "None":
+                if agent.health is not None and agent.health != "None" and agent.health != "":
                     try:
                         r = requests.get(agent.health)
                         healthy = True if r.status_code // 100 < 4 else False

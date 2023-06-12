@@ -1,13 +1,15 @@
 import json
-import time
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .models import Agent, Alert, Rule
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.exceptions import ValidationError
 import re
 from monitorweb.utils.enums import Request
 from monitorweb.utils.waf import WAF
 from channels.layers import get_channel_layer
+from django.core.validators import URLValidator
+import asyncio
+import datetime
 
 waf = WAF()
 
@@ -15,30 +17,53 @@ notification_group_name = "ips_notification"
 statistics_group_name = "ips_statistics"
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
-    async def fetch_stats(self, update_interval=300, eval_range=300):
-        unprocessed = Alert.objects.filter(is_processed=False).count()
-        unhealthy = Agent.objects.filter(status='Unhealthy').count()
-        rules_set = Rule.objects.all().count()
-        
+    async def fetch_stats(self, update_interval=360, eval_range=360):        
         while True:
-            time.sleep(self.update_interval)
+            unprocessed = Alert.objects.filter(is_processed=False).count()
+            unhealthy = Agent.objects.filter(status='Unhealthy').count()
+            rules_set = Rule.objects.all().count()
+            endtime = datetime.datetime.now()
+            starttime = endtime - datetime.timedelta(seconds=eval_range) 
+            alerts = Alert.objects.filter(Q(timestamp__range=(starttime,endtime))).select_related('agent').values('agent__name').annotate(count=Count('id')).order_by('-count')
+
+            stats = {
+                "unprocessed": unprocessed,
+                "unhealthy": unhealthy,
+                "rules_set": rules_set,
+                "alert_num": list(alerts),
+                "timestamp": endtime.strftime("%m-%d %H:%M:%S")
+            }
+            await self.channel_layer.group_send(
+                    self.group_name, 
+                    {   
+                        "type": "dashboard_update", 
+                        "unprocessed": unprocessed,
+                        "unhealthy": unhealthy,
+                        "rules_set": rules_set,
+                        "alert_num": list(alerts),
+                        "timestamp": endtime.strftime("%m-%d %H:%M:%S")
+                    }
+                )
+            await asyncio.sleep(update_interval)
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         if self.scope["path"] == "/ws/ips/notification/":
             self.group_name = notification_group_name
         elif self.scope["path"] == "/ws/ips/statistics/":
             self.group_name = statistics_group_name
+            asyncio.run(self.fetch_stats())
         else:
             self.group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']
+        self.validate = URLValidator()
 
-        # Join agent and notification group
+        # Join group
         await self.channel_layer.group_add(self.group_name, self.channel_name)
 
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave agent group
+        # Leave group
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     # Receive message from WebSocket
@@ -53,7 +78,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 agent_status = "Registered" # Agent is registered but not yet received any metrics/health checks
 
                 # Validate health check URL
-                if agent_health != "None":
+                if agent_health is not None and agent_health != "None" and agent_health != "":
                     try:
                         self.validate(agent_health)
                     except ValidationError:
