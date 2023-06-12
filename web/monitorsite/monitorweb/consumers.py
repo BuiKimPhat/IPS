@@ -17,7 +17,7 @@ notification_group_name = "ips_notification"
 statistics_group_name = "ips_statistics"
 
 class IPSConsumer(AsyncJsonWebsocketConsumer):
-    async def fetch_stats(self, update_interval=360, eval_range=360):        
+    async def fetch_stats(self, update_interval=300, eval_range=300):        
         while True:
             unprocessed = Alert.objects.filter(is_processed=False).count()
             unhealthy = Agent.objects.filter(status='Unhealthy').count()
