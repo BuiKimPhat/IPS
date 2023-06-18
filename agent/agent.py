@@ -16,13 +16,15 @@ class IPSAgent:
         self.uri = self.server+self.name+"/"
         self.ip = ""
         self.health = health
+        self.interface = interface
         self.register_error = False
         self.log_path = log_path
 
-        for addr in psutil.net_if_addrs()[interface]:
+        for addr in psutil.net_if_addrs()[self.interface]:
             if addr.family == socket.AF_INET:
                 self.ip = addr.address
                 break
+
     async def connect_to_server(self):
         # Check agent_name
         if not re.search("^\w+$", self.name):
@@ -47,6 +49,27 @@ class IPSAgent:
 
             self.register_error = False
             print(message)
+
+    async def recv_mess(self):
+        if self.register_error:
+            raise Exception("Unidentified error during registration. Exiting...")
+        connected = False
+
+        while not connected:
+            try:
+                async with websockets.connect(self.uri) as websocket:
+                    while True:
+                        message_raw = await websocket.recv()
+                        message = json.loads(message_raw)
+                        if message["type"] == "iptables_rule":
+                            print(message)
+                            subprocess.run(["iptables", f"-{message['action']}", message['chain'], "-p", message['protocol'], "-s", message['srcip'], "-i", self.interface, "--dport", str(message['dport']), "-j", message['target']])
+            except Exception as e:
+                connected = False
+                print("Error: ", e)
+                await asyncio.sleep(3) # 3 seconds delay before attempting to reconnect
+                print("Reconnecting...")
+
 
     async def send_message(self, metrics_interval):
         if self.register_error:
@@ -97,7 +120,7 @@ class IPSAgent:
                             }
 
                             # Send the message to the server
-                            # print("Sending: ", message)
+                            # print(message)
                             await websocket.send(json.dumps(message))
 
                             last_sent_timestamp = timestamp
@@ -109,8 +132,8 @@ class IPSAgent:
                             net_out = 0
                             net_in = 0
 
-                        # Check the ModSecurity audit log for new security events
-                        with open(self.log_path, errors='ignore') as f:
+                        # Check the log for new events
+                        with open(self.log_path) as f:
                             if last_line_num == 0:
                                 f.seek(last_line_num, 2)
                             else:
@@ -131,6 +154,7 @@ class IPSAgent:
                                     'req_header': origin_log['req_header'][:-1].split("~")
                                 }
 
+                                # print(log_message)
                                 # Send the message to the server using the sendMessage function
                                 await websocket.send(json.dumps(log_message))
 
@@ -145,7 +169,7 @@ class IPSAgent:
                 await asyncio.sleep(3) # 3 seconds delay before attempting to reconnect
                 print("Reconnecting...")
 
-if __name__ == '__main__':
+async def main():
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
     parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server URI', default='ws://10.0.101.69/ws/ips/')
     parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check for the web server)', default='None')
@@ -159,11 +183,14 @@ if __name__ == '__main__':
 
     try:
         # Register the agent with the server
-        asyncio.run(agent.connect_to_server())
+        await asyncio.create_task(agent.connect_to_server())
 
         # Send metrics to the server
-        asyncio.run(agent.send_message(args.metrics_interval))
+        await asyncio.gather(agent.send_message(args.metrics_interval), agent.recv_mess())
     except KeyboardInterrupt:
         print("\nStopping agent...")
     except Exception as e:
         print(e)
+
+if __name__ == '__main__':
+    asyncio.run(main())
