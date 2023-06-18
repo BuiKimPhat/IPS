@@ -11,5 +11,6 @@ urlpatterns = [
     path("alerts/", views.alerts, name="alerts"),
     path("logout/", views.logout, name="logout"),
     # APIs
-    path("api/mark_alerts/", views.mark_alerts, name="mark_alerts")
+    path("api/mark_alerts/", views.mark_alerts, name="mark_alerts"),
+    path("api/mark_alert/<int:alert_id>/", views.mark_alert, name="mark_alert")
 ]

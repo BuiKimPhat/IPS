@@ -8,6 +8,11 @@
         window.location.href = '?search=' + document.getElementById('search-content').value;
         return false;
     }
+
+    const markAlert = (e, mark_alert_url) => {
+        fetch(mark_alert_url);
+        e.style.backgroundColor = 'white';
+    }
 </script>
 <style>
     .active {
@@ -97,7 +102,7 @@
     </thead>
     <tbody>
         {% for alert in page_obj %}
-        <tr style="cursor: pointer; {% if alert.is_processed %}{% else %}background-color: #ddd;{% endif %}"><a href="#">
+        <tr style="cursor: pointer; {% if alert.is_processed %}{% else %}background-color: #ddd;{% endif %}" onclick="markAlert(this, `{% url 'monitorweb:mark_alert' alert.id %}`)">
                 <td>{{alert.rule.rule_class}}</td>
                 <td>{{alert.rule.name}}</td>
                 <td>{{alert.agent.name}}</td>
@@ -105,7 +110,7 @@
                 <td>{{alert.request}}</td>
                 <td>{% if alert.rule.deny %}Denied{% else %}Allowed{% endif %}</td>
                 <td>{{alert.timestamp}}</td>
-            </a></tr>
+            </tr>
         {% endfor %}
     </tbody>
 </table>

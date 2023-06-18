@@ -103,3 +103,14 @@ def mark_alerts(request):
     except Exception as e:
         print(e)
     return redirect("monitorweb:alerts")
+
+@login_required
+def mark_alert(request, alert_id):
+    try:
+        alert = Alert.objects.get(pk=alert_id)
+        alert.is_processed = True
+        alert.processed_by = request.user
+        alert.save()
+    except Exception as e:
+        print(e)
+    return redirect("monitorweb:alerts")

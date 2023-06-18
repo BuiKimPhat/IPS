@@ -3,7 +3,7 @@ from monitorweb.models import Agent
 import requests
 
 class AgentStatusUpdater:
-    def __init__(self, update_interval = 90, unhealthy_threshold = 30):
+    def __init__(self, update_interval = 30, unhealthy_threshold = 30):
         self.update_interval = update_interval
         self.unhealthy_threshold = unhealthy_threshold
         self.last_activity_times = {}
@@ -20,6 +20,7 @@ class AgentStatusUpdater:
 
                 # Health check URL
                 if agent.health is not None and agent.health != "None" and agent.health != "":
+                    # print("health checking")
                     try:
                         r = requests.get(agent.health)
                         healthy = True if r.status_code // 100 < 4 else False

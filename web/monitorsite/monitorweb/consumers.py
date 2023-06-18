@@ -39,6 +39,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                             break
                     if not isIn:
                         alert_num.append({"agent__name": agent["name"], "count": 0})
+
                 
                 await self.channel_layer.group_send(
                         self.group_name, 
@@ -57,6 +58,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
             print("Statistics sending task cancelled.")
         except Exception:
             print(traceback.format_exc())
+
     async def connect(self):
         self.agent_name = self.scope["url_route"]["kwargs"]["agent_name"]
         if self.scope["path"] == "/ws/ips/notification/":
@@ -210,11 +212,29 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         # Send alert to WebSocket
         await self.send_json({"type":"alert_attack", "alerts": alerts})
 
+    async def iptables_rule(self, event):
+        srcip = event["srcip"]
+        protocol = event["protocol"] 
+        chain = event["chain"]
+        action = event["action"] 
+        target = event["target"] 
+        dport = event["dport"]
+
+        await self.send_json({
+            "type": "iptables_rule", 
+            "srcip": srcip, 
+            "protocol": protocol, 
+            "chain": chain, 
+            "action": action, 
+            "target": target, 
+            "dport": dport
+        })
+
     async def dashboard_update(self, event):
         # Dashboard updates
         unprocessed = event["unprocessed"]
         agent_num = event["agent_num"]
-        healthy = event["agent_num"]
+        healthy = event["healthy"]
         rules_set = event["rules_set"]
         alert_num = event["alert_num"]
         timestamp = event["timestamp"]

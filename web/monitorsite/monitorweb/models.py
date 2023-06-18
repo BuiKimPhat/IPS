@@ -1,6 +1,10 @@
 from django.db import models
 from monitorweb.utils.enums import Request, Operator
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class Agent(models.Model):
     def __str__(self):
@@ -42,6 +46,18 @@ class RuleComponent(models.Model):
     filter_field = models.CharField(choices=FILTER_FIELD_CHOICES,max_length=30, default=Request.url.value)
     regex = models.CharField(null=True,max_length=1500)
 
+class IptablesRule(models.Model):
+    def __str__(self):
+        return self.name
+    name = models.CharField(null=True,blank=True,max_length=200)
+    agent = models.ForeignKey(Agent, on_delete=models.PROTECT)
+    srcip = models.GenericIPAddressField()
+    protocol = models.CharField(max_length=10)
+    chain = models.CharField(max_length=50)
+    action = models.CharField(max_length=10)
+    target = models.CharField(max_length=10)
+    dport = models.PositiveIntegerField()
+
 class Alert(models.Model):
     def __str__(self):
         return f"{self.rule.rule_class} - {self.rule.name} - {self.agent.name}"
@@ -59,4 +75,24 @@ class Alert(models.Model):
     headers = models.CharField(blank=True,max_length=1500)
     remote_addr = models.GenericIPAddressField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+
+# Signal functions
+@receiver(post_save, sender=Alert)
+def create_iptables_rule(sender, instance, created, **kwargs):
+    # Auto IPS for alerts
+    if created and instance.rule.is_denied:
+        IptablesRule.objects.create(name="Alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='INPUT', action='A', target='DROP')
+
+@receiver(post_save, sender=IptablesRule)
+def append_iptables_rule(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    ips_agent_group = "ipsgroup_%s" % instance.agent.name
+    async_to_sync(channel_layer.group_send)(ips_agent_group, {"type": "iptables_rule", "srcip": instance.srcip, "protocol": instance.protocol, "chain": instance.chain, "action": instance.action, "target": instance.target, "dport": instance.dport})
     
+@receiver(post_delete, sender=IptablesRule)
+def delete_iptables_rule(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+    ips_agent_group = "ipsgroup_%s" % instance.agent.name
+    async_to_sync(channel_layer.group_send)(ips_agent_group, {"type": "iptables_rule", "srcip": instance.srcip, "protocol": instance.protocol, "chain": instance.chain, "action": "D", "target": instance.target, "dport": instance.dport})
+

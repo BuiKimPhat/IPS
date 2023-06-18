@@ -52,7 +52,7 @@ const removeData = chart => {
 const updateChart = (chart, label, data) => {
   const max_data_point = 48;
   addData(chart, label, data);
-  if (chart.data.datasets[0].data.length > max_data_point) removeData(chart);
+  if (chart.data.datasets.length > 0 && chart.data.datasets[0].data.length > max_data_point) removeData(chart);
   chart.update();
 }
 
@@ -61,6 +61,7 @@ const updateStats = (piechart,data) => {
   if (data.unprocessed == 0) document.getElementById("unprocessedNum").style.color = '#4bc0c0';
   else document.getElementById("unprocessedNum").style.color = '#dc3545';
   document.getElementById("ruleNum").textContent = data.rules_set.toString();
+  console.log(data)
   piechart.data.datasets[0].data = [data.healthy, data.agent_num - data.healthy];
   piechart.update();
 }
