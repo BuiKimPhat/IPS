@@ -177,7 +177,6 @@ class IPSAgent:
                                     'message': line,
                                 }
 
-                                # print(log_message)
                                 # Send the message to the server
                                 await websocket.send(json.dumps(log_message))
 
@@ -207,15 +206,13 @@ async def main():
 
     try:
         # Register the agent with the server
-        conntask = await asyncio.create_task(agent.connect_to_server())
+        await asyncio.create_task(agent.connect_to_server())
 
         # Send metrics to the server
         await asyncio.gather(agent.send_message(args.metrics_interval), agent.recv_mess())
     except KeyboardInterrupt:
-        conntask.cancel()
         print("\nStopping agent...")
     except Exception as e:
-        conntask.cancel()
         print(e)
 
 if __name__ == '__main__':
