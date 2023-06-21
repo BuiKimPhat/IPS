@@ -1,7 +1,7 @@
 {% extends 'monitorweb/base.html' %}
 
 {% block head %}
-<title>Agents - IPS</title>
+<title>Alerts - IPS</title>
 <script>
     const search = e => {
         e.preventDefault();
@@ -82,42 +82,35 @@
             </span>
     </ul>
 </nav>
-
 <table class="table table-hover">
     <thead>
         <tr>
             <th scope="col">Name</th>
-            <th scope="col">Status</th>
-            <th scope="col">IP</th>
-            <th scope="col">Health check</th>
-            <th scope="col">Registered at</th>
+            <th scope="col">Agent</th>
+            <th scope="col">Chain</th>
+            <th scope="col">Protocol</th>
+            <th scope="col">Source IP</th>
+            <th scope="col">Destination Port</th>
+            <th scope="col">Target</th>
         </tr>
     </thead>
     <tbody>
-        {% for agent in page_obj %}
-        <tr>
-                <td><a href="{% url 'monitorweb:agent_detail' agent.id %}" class="text-reset">{{agent.name}}</a></td>
-                {% if agent.status == "Healthy" %}
-                <td class="text-success">
-                    <i class="bi bi-check-circle"></i> 
-                    {{agent.status}}
-                </td>
-                {% else %}
-                <td class="text-danger">
-                    <i class="bi bi-exclamation-circle"></i> 
-                    {{agent.status}}
-                </td>
-                {% endif %} 
-                <td>{{agent.ip}}</td>
-                <td>{{agent.health}}</td>
-                <td>{{agent.registered_at}}</td>
-            </a></tr>
+        {% for iptrule in page_obj %}
+            <tr>
+                <td>{{iptrule.name}}</td>
+                <td>{{iptrule.agent.name}}</td>
+                <td>{{iptrule.chain}}</td>
+                <td>{{iptrule.protocol}}</td>
+                <td>{{iptrule.srcip}}</td>
+                <td>{{iptrule.dport}}</td>
+                <td>{{iptrule.target}}</td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
 <div class="alert alert-light" role="alert">
-    <i class="bi bi-info-circle"></i> No registered agent available.
+    <i class="bi bi-info-circle"></i> No Iptables rule. No IP will be blocked.
 </div>
 {% endif %}
 

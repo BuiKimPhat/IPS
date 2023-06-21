@@ -108,7 +108,7 @@
                 <td>{{alert.agent.name}}</td>
                 <td>{{alert.remote_addr}}</td>
                 <td>{{alert.request}}</td>
-                <td>{% if alert.rule.deny %}Denied{% else %}Allowed{% endif %}</td>
+                <td>{% if alert.rule.deny %}Blocked{% else %}Allowed{% endif %}</td>
                 <td>{{alert.timestamp}}</td>
             </tr>
         {% endfor %}
