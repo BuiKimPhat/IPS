@@ -161,7 +161,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
-            # Log stream
+            # Access Log stream
             if text_data_json["type"] == "access_log":
                 req = {
                     Request.ip.value : text_data_json["remote_addr"],
@@ -179,7 +179,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # WAF
                 alerts = await waf.detect_attack(req)
 
-                # Send message to agent group
+                # Send message to noti group
                 if len(alerts) > 0:
                     await self.channel_layer.group_send(
                         notification_group_name, 
@@ -191,11 +191,42 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
-            # Dashboard statistics
+            # Portscan log stream
+            if text_data_json["type"] == "portscan_alert":
+                message = text_data_json["message"]
+                scanlogd_reg = "^(?P<timestamp>[a-zA-Z]+ \d+ \d{2}:\d{2}:\d{2}) (?P<hostname>\w+) scanlogd: (?P<scrip>\d+\.\d+\.\d+\.\d+).* to (?P<dstip>\d+\.\d+\.\d+\.\d+) (?P<message>.*)$"
+                obj = re.search(scanlogd_reg, message)
+                req = {
+                    Request.ip.value : obj.group(3),
+                    Request.timestamp.value : obj.group(1),
+                    Request.user.value : "",
+                    Request.url.value : "",
+                    Request.status.value : 0,
+                    Request.bbs.value : 0,
+                    Request.req_time.value : 0,
+                    Request.body.value : "",
+                    Request.headers.value : "",
+                    Request.destination.value : self.agent_name
+                }
 
+                # Port scan detect
+                alerts = await waf.detect_port_scan(req)
+
+                # Send message to noti group
+                if len(alerts) > 0:
+                    await self.channel_layer.group_send(
+                        notification_group_name, 
+                        {   
+                            "type": "alert_attack", 
+                            'alerts': alerts
+                        }
+                    )
+                # Update last active time
+                self.status_updater.update_last_activity_time(self.agent_name)
 
         except Exception as e:
             print("Unexpected error! ", e)
+            traceback.format_exc()
 
     # Handlers called with each connected client in the channel 
     # Received message from group
@@ -241,14 +272,14 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
         # Send message to WebSocket
         await self.send_json({   
-                "type": "dashboard_update",
-                "unprocessed": unprocessed,
-                "agent_num": agent_num,
-                "healthy": healthy,
-                "rules_set": rules_set,
-                "alert_num": alert_num,
-                "timestamp": timestamp
-            })
+            "type": "dashboard_update",
+            "unprocessed": unprocessed,
+            "agent_num": agent_num,
+            "healthy": healthy,
+            "rules_set": rules_set,
+            "alert_num": alert_num,
+            "timestamp": timestamp
+        })
 
     async def metrics_update(self, event):
         # Real-time metrics
@@ -262,13 +293,13 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
 
         # Send message to WebSocket
         await self.send_json({   
-                "type": "metrics_update",
-                "cpu_percent": cpu_percent,
-                "mem_percent": mem_percent,
-                "disk_read": disk_read,
-                "disk_write": disk_write,
-                "net_out": net_out,
-                "net_in": net_in,
-                "timestamp": timestamp,
-            })
+            "type": "metrics_update",
+            "cpu_percent": cpu_percent,
+            "mem_percent": mem_percent,
+            "disk_read": disk_read,
+            "disk_write": disk_write,
+            "net_out": net_out,
+            "net_in": net_in,
+            "timestamp": timestamp,
+        })
 
