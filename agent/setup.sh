@@ -2,7 +2,7 @@
 # For nginx 1.18.0 on Ubuntu 22.04
 # Dependencies
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libpcre3-dev libssl-dev zlib1g-dev
+DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libpcre3-dev libssl-dev zlib1g-dev scanlogd
 
 # Download nginx source
 cd /opt && wget http://nginx.org/download/nginx-1.18.0.tar.gz
@@ -51,4 +51,8 @@ sed -i 's/http {/http {\n\tlua_package_path "\/usr\/share\/nginx\/lib\/lua\/\?\.
 
 # Supposing that the access log is /var/log/nginx/access.log
 chmod 777 /var/log/nginx/access.log
-# Reload nginx
+# Reconfig and reload nginx
+
+# Configure scanlogd
+echo "daemon.alert /var/log/portscan.alert" | tee -a /etc/rsyslog.conf
+service rsyslog restart

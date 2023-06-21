@@ -10,7 +10,7 @@ import re
 import select
 
 class IPSAgent:
-    def __init__(self, server, name, interface, health, log_path):
+    def __init__(self, server, name, interface, health, log_path, portscan_log):
         self.server = server
         self.name = name
         self.uri = self.server+self.name+"/"
@@ -19,6 +19,7 @@ class IPSAgent:
         self.interface = interface
         self.register_error = False
         self.log_path = log_path
+        self.portscan_log = portscan_log
 
         for addr in psutil.net_if_addrs()[self.interface]:
             if addr.family == socket.AF_INET:
@@ -75,8 +76,11 @@ class IPSAgent:
         if self.register_error:
             raise Exception("Unidentified error during registration. Exiting...")
         connected = False
-        # Logs variables
+        # Access Logs variables
         last_line_num = 0
+        # Portscan Logs variables
+        portscan_last_line_num = 0
+
         while not connected:
             try:
                 async with websockets.connect(self.uri) as websocket:
@@ -155,12 +159,30 @@ class IPSAgent:
                                 }
 
                                 # print(log_message)
-                                # Send the message to the server using the sendMessage function
+                                # Send the message to the server
                                 await websocket.send(json.dumps(log_message))
 
                             last_line_num = f.tell()
 
-                        # Sleep for 1 second before sending the next message
+                        # Check the log for new events
+                        with open(self.portscan_log) as f:
+                            if portscan_last_line_num == 0:
+                                f.seek(portscan_last_line_num, 2)
+                            else:
+                                f.seek(portscan_last_line_num)
+                            for line in f:
+                                # Construct a JSON message for the attack
+                                log_message = {
+                                    'type': 'portscan_alert',
+                                    'message': line,
+                                }
+
+                                # print(log_message)
+                                # Send the message to the server
+                                await websocket.send(json.dumps(log_message))
+
+                            portscan_last_line_num = f.tell()
+
                         await asyncio.sleep(1)
 
             except Exception as e:
@@ -176,20 +198,24 @@ async def main():
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
     parser.add_argument('-m', '--metrics-interval', required=False, type=int, help='Interval between metrics updates (second)', default=20)
-    parser.add_argument('-l','--log-path', required=False, type=str, help='Path to nginx log file', default='/var/log/nginx/access.log')
+    parser.add_argument('-l','--log-path', required=False, type=str, help='Path to nginx access log file', default='/var/log/nginx/access.log')
+    parser.add_argument('-sl','--scan-log-path', required=False, type=str, help='Path to scanlogd log file', default='/var/log/portscan.alert')
+
     args = parser.parse_args()
 
-    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri, args.log_path)
+    agent = IPSAgent(args.server, args.name, args.interface, args.check_uri, args.log_path, args.scan_log_path)
 
     try:
         # Register the agent with the server
-        await asyncio.create_task(agent.connect_to_server())
+        conntask = await asyncio.create_task(agent.connect_to_server())
 
         # Send metrics to the server
         await asyncio.gather(agent.send_message(args.metrics_interval), agent.recv_mess())
     except KeyboardInterrupt:
+        conntask.cancel()
         print("\nStopping agent...")
     except Exception as e:
+        conntask.cancel()
         print(e)
 
 if __name__ == '__main__':
