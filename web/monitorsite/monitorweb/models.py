@@ -54,7 +54,6 @@ class IptablesRule(models.Model):
     srcip = models.GenericIPAddressField()
     protocol = models.CharField(max_length=10)
     chain = models.CharField(max_length=50)
-    action = models.CharField(max_length=10)
     target = models.CharField(max_length=10)
     dport = models.PositiveIntegerField()
 
@@ -70,7 +69,7 @@ class Alert(models.Model):
     status = models.PositiveIntegerField()
     body_bytes_sent = models.PositiveIntegerField()
     request_time = models.FloatField()
-    request = models.CharField(max_length=200)
+    request = models.CharField(blank=True,max_length=200)
     body = models.CharField(blank=True,max_length=2000)
     headers = models.CharField(blank=True,max_length=1500)
     remote_addr = models.GenericIPAddressField()
@@ -81,14 +80,15 @@ class Alert(models.Model):
 @receiver(post_save, sender=Alert)
 def create_iptables_rule(sender, instance, created, **kwargs):
     # Auto IPS for alerts
-    if created and instance.rule.is_denied:
-        IptablesRule.objects.create(name="Alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='INPUT', action='A', target='DROP')
+    if created and instance.rule and instance.rule.is_denied:
+        IptablesRule.objects.create(name=f"{instance.rule.rule_class} alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='INPUT', target='DROP')
+        IptablesRule.objects.create(name=f"{instance.rule.rule_class} alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='FORWARD', target='DROP')
 
 @receiver(post_save, sender=IptablesRule)
 def append_iptables_rule(sender, instance, created, **kwargs):
     channel_layer = get_channel_layer()
     ips_agent_group = "ipsgroup_%s" % instance.agent.name
-    async_to_sync(channel_layer.group_send)(ips_agent_group, {"type": "iptables_rule", "srcip": instance.srcip, "protocol": instance.protocol, "chain": instance.chain, "action": instance.action, "target": instance.target, "dport": instance.dport})
+    async_to_sync(channel_layer.group_send)(ips_agent_group, {"type": "iptables_rule", "srcip": instance.srcip, "protocol": instance.protocol, "chain": instance.chain, "action": "A", "target": instance.target, "dport": instance.dport})
     
 @receiver(post_delete, sender=IptablesRule)
 def delete_iptables_rule(sender, instance, **kwargs):
