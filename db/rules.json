@@ -1,15 +1,154 @@
 [
     {
-        "name": "Any HTML tags",
-        "rule_class": "XSS",
-        "deny": false,
+        "name": "Port scan",
+        "rule_class": "Portscan",
+        "is_denied": false,
         "ref": "",
         "description": "",
+        "operator": "AND",
+        "components": []
+    },
+    {
+        "name": "Any HTML tags",
+        "rule_class": "XSS",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check URL for XSS and body for stored XSS",
+        "operator": "OR",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "(?:<|%3C|\\\\+ADw-|&#0{0,}60;?|&#x0{0,}3c;?|\\\\\\\\u003c|\\\\\\\\x3c).+\\/?(>|%3E|\\\\+AD4-|&#0{0,}62;?|&#x0{0,}3e;?|\\\\\\\\u003e|\\\\\\\\x3e)"
+            },
+            {
+                "filter_field": "Body",
+                "regex": "(?:<|%3C|\\\\+ADw-|&#0{0,}60;?|&#x0{0,}3c;?|\\\\\\\\u003c|\\\\\\\\x3c).+\\/?(>|%3E|\\\\+AD4-|&#0{0,}62;?|&#x0{0,}3e;?|\\\\\\\\u003e|\\\\\\\\x3e)"
+            }
+        ]
+    },
+    {
+        "name": "Path traversal",
+        "rule_class": "Path traversal",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check URL for Path traversal",
+        "operator": "OR",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "(\\.\\.(\\/|\\\\)|\\.\\.%(2F|5C))|(.env)+"
+            },
+            {
+                "filter_field": "Body",
+                "regex": "(\\.\\.(\\/|\\\\)|\\.\\.%(2F|5C))|(.env)+"
+            }
+        ]
+    },
+    {
+        "name": "SQL injection",
+        "rule_class": "SQLi",
+        "is_denied": true,
+        "ref": "",
+        "description": "Check URL, body and header for SQL injection",
+        "operator": "OR",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "(\\s*([\\0\\b\\'\\\"\\n\\r\\t\\%\\_\\\\]*\\s*(((select\\s*.+\\s*from\\s*.+)|(insert\\s*.+\\s*into\\s*.+)|(update\\s*.+\\s*set\\s*.+)|(delete\\s*.+\\s*from\\s*.+)|(drop\\s*.+)|(truncate\\s*.+)|(alter\\s*.+)|(exec\\s*.+)|(\\s*(all|any|not|and|between|in|like|or|some|contains|containsall|containskey)\\s*.+[\\=\\>\\<=\\!\\~]+.+)|(let\\s+.+[\\=]\\s*.*)|(begin\\s*.*\\s*end)|(\\s*[\\*]+\\s*.*\\s*[\\*]+)|(\\s*(\\-\\-)\\s*.*\\s+)|(\\s*(contains|containsall|containskey)\\s+.*)))(\\s*[\\;]\\s*)*)+)"
+            },
+            {
+                "filter_field": "Body",
+                "regex": "(\\s*([\\0\\b\\'\\\"\\n\\r\\t\\%\\_\\\\]*\\s*(((select\\s*.+\\s*from\\s*.+)|(insert\\s*.+\\s*into\\s*.+)|(update\\s*.+\\s*set\\s*.+)|(delete\\s*.+\\s*from\\s*.+)|(drop\\s*.+)|(truncate\\s*.+)|(alter\\s*.+)|(exec\\s*.+)|(\\s*(all|any|not|and|between|in|like|or|some|contains|containsall|containskey)\\s*.+[\\=\\>\\<=\\!\\~]+.+)|(let\\s+.+[\\=]\\s*.*)|(begin\\s*.*\\s*end)|(\\s*[\\*]+\\s*.*\\s*[\\*]+)|(\\s*(\\-\\-)\\s*.*\\s+)|(\\s*(contains|containsall|containskey)\\s+.*)))(\\s*[\\;]\\s*)*)+)"
+            },
+            {
+                "filter_field": "Headers",
+                "regex": "(\\s*([\\0\\b\\'\\\"\\n\\r\\t\\%\\_\\\\]*\\s*(((select\\s*.+\\s*from\\s*.+)|(insert\\s*.+\\s*into\\s*.+)|(update\\s*.+\\s*set\\s*.+)|(delete\\s*.+\\s*from\\s*.+)|(drop\\s*.+)|(truncate\\s*.+)|(alter\\s*.+)|(exec\\s*.+)|(\\s*(all|any|not|and|between|in|like|or|some|contains|containsall|containskey)\\s*.+[\\=\\>\\<=\\!\\~]+.+)|(let\\s+.+[\\=]\\s*.*)|(begin\\s*.*\\s*end)|(\\s*[\\*]+\\s*.*\\s*[\\*]+)|(\\s*(\\-\\-)\\s*.*\\s+)|(\\s*(contains|containsall|containskey)\\s+.*)))(\\s*[\\;]\\s*)*)+)"
+            }
+        ]
+    },
+    {
+        "name": "NULL byte attack",
+        "rule_class": "Null-byte",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check URL and body for ASCII character 0x00 (NULL BYTE) injection attack",
+        "operator": "OR",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "\\x00"
+            },
+            {
+                "filter_field": "Headers",
+                "regex": "\\x00"
+            }
+        ]
+    },
+    {
+        "name": "Check FTP host",
+        "rule_class": "RFI",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check URL for remote file inclusion",
         "operator": "AND",
         "components": [
             {
                 "filter_field": "URL",
-                "regex": "(?:<|%3C|\\+ADw-|&#0{0,}60;?|&#x0{0,}3c;?|\\\\u003c|\\\\x3c).+\/?(>|%3E|\\+AD4-|&#0{0,}62;?|&#x0{0,}3e;?|\\\\u003e|\\\\x3e)"
+                "regex": "^(?:ftp):\\/\\/[^\\/]+\\/.+"
+            },
+            {
+                "filter_field": "Status",
+                "regex": "^(?!304).*"
+            }
+        ]
+    },
+    {
+        "name": "Excessive hexadecimal field",
+        "rule_class": "ExcessiveHeader",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check Headers for Excessive hexadecimal field",
+        "operator": "AND",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "(?:\\\\x[a-f0-9]{2,4}){25}"
+            },
+            {
+                "filter_field": "Status",
+                "regex": "^(?!304).*"
+            }
+        ]
+    },
+    {
+        "name": "Check file extensions",
+        "rule_class": "UploadFile",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check URL for upload file attack",
+        "operator": "AND",
+        "components": [
+            {
+                "filter_field": "URL",
+                "regex": "filename[^;\\n=]*=((['\"]).*?\\2|[^;\\n]*).(php|js)"
+            },
+            {
+                "filter_field": "Status",
+                "regex": "^(?!304).*"
+            }
+        ]
+    },
+    {
+        "name": "Check for popular scan tools",
+        "rule_class": "ScanTool",
+        "is_denied": false,
+        "ref": "",
+        "description": "Check headers for scan tools",
+        "operator": "AND",
+        "components": [
+            {
+                "filter_field": "Headers",
+                "regex": "(?:analyzer|bandit|emailmagnet|ex(ploit|tract)|flood|grabber|harvest|inspect|NetLyzer|scanner|sqlmap)"
             },
             {
                 "filter_field": "Status",

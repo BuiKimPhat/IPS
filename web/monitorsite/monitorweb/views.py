@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, logout as logout_func, login as lo
 from django.core.paginator import Paginator
 from .models import Agent, Alert, IptablesRule, Rule, RuleComponent
 from django.db.models import Q
+import json
 
 def login(request):
     # Check if user is authenticated
@@ -191,3 +192,30 @@ def delete_iptables_rule(request, rule_id):
     except Exception as e:
         print(e)
     return redirect("monitorweb:iptables_rules")
+
+@login_required
+def import_rules(request):
+    # Mark an alert as processed
+    try:
+        file = request.FILES["file"]
+        for chunk in file.chunks():
+            data = json.loads(chunk)
+            for rule in data:
+                r, created = Rule.objects.get_or_create(
+                    name=rule["name"],
+                    rule_class=rule['rule_class'],
+                    is_denied=rule['is_denied'],
+                    ref=rule['ref'],
+                    description=rule['description'],
+                    operator=rule['operator']
+                )
+                if created:
+                    for component in rule['components']:
+                        RuleComponent.objects.create(
+                            rule=r,
+                            filter_field=component['filter_field'],
+                            regex=component['regex']
+                        )
+    except Exception as e:
+        print("Import error: ", e)
+    return redirect("monitorweb:rules")

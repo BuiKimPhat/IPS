@@ -16,5 +16,6 @@ urlpatterns = [
     # APIs
     path("api/mark_alerts/", views.mark_alerts, name="mark_alerts"),
     path("api/mark_alert/<int:alert_id>/", views.mark_alert, name="mark_alert"),
-    path("api/delete_iptables_rule/", views.delete_iptables_rule, name="delete_iptables_rule")
+    path("api/delete_iptables_rule/<int:rule_id>/", views.delete_iptables_rule, name="delete_iptables_rule"),
+    path("api/import_rules/", views.import_rules, name="import_rules")
 ]
