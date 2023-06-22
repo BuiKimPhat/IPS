@@ -65,7 +65,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
             self.group_name = notification_group_name
         elif self.scope["path"] == "/ws/ips/statistics/":
             self.group_name = statistics_group_name
-            self.stat_task = asyncio.create_task(self.fetch_stats(update_interval=10))
+            self.stat_task = asyncio.create_task(self.fetch_stats(update_interval=10,eval_range=10))
         else:
             self.group_name = "ipsgroup_%s" % self.agent_name
         self.status_updater = self.scope["url_route"]["kwargs"]['status_updater']

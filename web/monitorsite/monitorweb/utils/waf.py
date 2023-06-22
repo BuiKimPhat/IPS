@@ -18,7 +18,9 @@ class WAF:
             return None
         try:
             agent = await Agent.objects.aget(name=request[Request.destination.value])
-            print(request, rule, message)
+            # print(request, rule, message)
+            if len(message) >= 200:
+                message = message[:200]
             new_alert = Alert(agent=agent, rule=rule, message=message, remote_user=request[Request.user.value], status=request[Request.status.value], body_bytes_sent=request[Request.bbs.value], request_time=request[Request.req_time.value], request=request[Request.url.value], body=request[Request.body.value], headers=request[Request.headers.value], remote_addr=request[Request.ip.value])
             await new_alert.asave()
             print(f"Alert: {new_alert.id}")
@@ -82,6 +84,9 @@ class WAF:
                     result = result or (match is not None) 
                     if match:
                         message += match.group() + ";"
+
+            if await rule_components.acount() == 0:
+                result = False
             
             if result:
                 new_alert = await self.create_alert(request, rule, message)

@@ -113,6 +113,12 @@
     </tbody>
 </table>
 {% else %}
+<a href="/admin/monitorweb/rule/add/" class="btn btn-outline-secondary mb-3 me-2">Create a new rule</a>
+<form method="post" class="input-group mb-3 me-3 w-auto" enctype="multipart/form-data" action="/api/import_rules/">
+    {% csrf_token %}
+    <input name="file" class="form-control" type="file" id="importFile">
+    <button class="btn btn-outline-secondary" type="submit" id="importBtn">Import</button>
+</form>
 <div class="alert alert-light" role="alert">
     <i class="bi bi-info-circle"></i> No rule. Get started by adding a new rule.
 </div>
