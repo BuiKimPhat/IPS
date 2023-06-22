@@ -54,5 +54,6 @@ chmod 777 /var/log/nginx/access.log
 # Reconfig and reload nginx
 
 # Configure scanlogd
+touch /var/log/portscan.alert
 echo "daemon.alert /var/log/portscan.alert" | tee -a /etc/rsyslog.conf
 service rsyslog restart
