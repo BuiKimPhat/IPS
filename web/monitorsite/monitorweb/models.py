@@ -44,7 +44,7 @@ class RuleComponent(models.Model):
         (Request.ip.value, "Source IP address"),
     ]
     filter_field = models.CharField(choices=FILTER_FIELD_CHOICES,max_length=30, default=Request.url.value)
-    regex = models.CharField(null=True,max_length=1500)
+    regex = models.CharField(null=True,max_length=10000)
 
 class IptablesRule(models.Model):
     def __str__(self):

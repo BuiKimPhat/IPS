@@ -71,19 +71,26 @@ class WAF:
             if operator == Operator.AND.value:
                 result = True
                 async for component in rule_components:
-                    match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
-                    result = result and (match is not None) 
-                    if match:
-                        message += match.group() + ";"
+                    try:
+                        match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
+                        result = result and (match is not None) 
+                        if match:
+                            message += match.group() + ";"
+                    except Exception as e:
+                        print("Regex error: ", e, component.regex)
 
             # Operator "OR"
             if operator == Operator.OR.value:
                 result = False
                 async for component in rule_components:
-                    match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
-                    result = result or (match is not None) 
-                    if match:
-                        message += match.group() + ";"
+                    try:
+                        match = re.search(component.regex, str(request[component.filter_field]), re.IGNORECASE)
+                        result = result or (match is not None) 
+                        if match:
+                            message += match.group() + ";"
+                    except Exception as e:
+                        print("Regex error: ", e, component.regex)
+
 
             if await rule_components.acount() == 0:
                 result = False

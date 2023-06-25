@@ -85,7 +85,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
     # Receive message from WebSocket
     async def receive_json(self, text_data_json):
         try:
-            # print(text_data_json)
+            print(text_data_json)
             # Register agent
             if text_data_json["type"] == "agent_register":
                 agent_name = text_data_json["agent_name"]
@@ -224,9 +224,8 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
                 # Update last active time
                 self.status_updater.update_last_activity_time(self.agent_name)
 
-        except Exception as e:
-            print("Unexpected error! ", e)
-            traceback.format_exc()
+        except Exception:
+            print(traceback.format_exc())
 
     # Handlers called with each connected client in the channel 
     # Received message from group
