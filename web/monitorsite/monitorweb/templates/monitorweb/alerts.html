@@ -91,9 +91,9 @@
 <table class="table table-hover">
     <thead>
         <tr>
+            <th scope="col">Agent</th>
             <th scope="col">Rule class</th>
             <th scope="col">Rule triggered</th>
-            <th scope="col">Agent</th>
             <th scope="col">Source IP</th>
             <th scope="col">Request</th>
             <th scope="col">Action</th>
@@ -103,9 +103,9 @@
     <tbody>
         {% for alert in page_obj %}
         <tr style="cursor: pointer; {% if alert.is_processed %}{% else %}background-color: #ddd;{% endif %}" onclick="markAlert(this, `{% url 'monitorweb:mark_alert' alert.id %}`)">
+                <td>{{alert.agent.name}}</td>
                 <td>{{alert.rule.rule_class}}</td>
                 <td>{{alert.rule.name}}</td>
-                <td>{{alert.agent.name}}</td>
                 <td>{{alert.remote_addr}}</td>
                 <td>{{alert.request}}</td>
                 <td>{% if alert.rule.is_denied %}Blocked{% else %}Allowed{% endif %}</td>
