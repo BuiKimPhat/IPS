@@ -40,10 +40,10 @@
         </tr>
     </tbody>
 </table>
-
+<a href="{% url 'admin:monitorweb_rule_change' rule.id %}" class="btn btn-outline-secondary mb-3 me-2">Edit rule</a>
 
 <h4>Rule Components</h4>
-<table class="my-2 table">
+<table class="my-2 table table-hover">
     <thead>
         <tr>
             <th scope="col">Filter field</th>
@@ -52,8 +52,8 @@
     </thead>
     <tbody>
         {% for com in rule_components %}
-        <tr>
-            <td>{{com.filter_field}}</td>
+        <tr style="cursor: pointer;">
+            <td><a title="Edit component" class="text-reset" href="{% url 'admin:monitorweb_rulecomponent_change' com.id %}">{{com.filter_field}}</a></td>
             <td>{{com.regex}}</td>
         </tr>
         {% if not forloop.last %}
