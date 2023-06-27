@@ -116,22 +116,42 @@ const update_badge = (max_noti) => {
 const update_toasts = (data, max_toast) => {
     const toast_container = document.getElementById("toast-container");
     const new_toasts = data.alerts.map(item => toast_child(item));
+    let last_full = 0;
+    let full_interval = 1000; // miliseconds
+
+    let timestamp = new Date().getTime();
 
     if (toast_container.childElementCount >= max_toast) {
+        if (timestamp - last_full >= full_interval){ 
+            for (let i = 0; i < toast_container.childElementCount; i++) {
+                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toast_container.children[i]);
+                toastBootstrap.hide();
+            }
+            for (let i = 0; i < (max_toast <= new_toasts.length ? max_toast : new_toasts.length); i++) {
+                toast_container.appendChild(new_toasts[i]);
+                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(new_toasts[i]);
+                toastBootstrap.show();
+            }
+            full_interval = timestamp;
+        }
+    } else {
         for (let i = 0; i < toast_container.childElementCount; i++) {
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toast_container.children[i]);
             toastBootstrap.hide();
         }
+        for (let i = 0; i < (max_toast <= new_toasts.length ? max_toast : new_toasts.length); i++) {
+            toast_container.appendChild(new_toasts[i]);
+            const toastBootstrap = bootstrap.Toast.getOrCreateInstance(new_toasts[i]);
+            toastBootstrap.show();
+        }    
     }
 
-    for (let i = 0; i < (max_toast <= new_toasts.length ? max_toast : new_toasts.length); i++) {
-        toast_container.appendChild(new_toasts[i]);
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(new_toasts[i]);
-        toastBootstrap.show();
-    }
 }
 
 const fetch_notification = () => {
+    let last_audio = 0;
+    let audio_interval = 5000; // miliseconds
+
     update_badge(15);
     const ws = new WebSocket('ws://' + window.location.host + '/ws/ips/notification/');
     ws.onopen = () => {
@@ -145,7 +165,11 @@ const fetch_notification = () => {
             update_badge(15);
             update_toasts(data, 4);
             notify(data);
-            document.getElementById('notify-sound').play();
+            let timestamp = new Date().getTime();
+            if (timestamp - last_audio >= audio_interval){
+                document.getElementById('notify-sound').play();
+                last_audio = timestamp;
+            }
         }
     };
 

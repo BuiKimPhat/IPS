@@ -18,7 +18,7 @@ class WAF:
         # Get mail credentials
         self.config = {
             "mail_cred_path": '/home/ubuntu/IPS/web/monitorsite/monitorsite/.mail_credentials.yaml',
-            "mail_interval": 0 # 5 seconds interval between mail sending
+            "mail_interval": 180 # 3 minutes interval between mail sending
         }
         self.last_mail_sent = 0
         self.activate_mail()
