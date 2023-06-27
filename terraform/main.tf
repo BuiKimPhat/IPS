@@ -106,7 +106,7 @@ module "static_web_ec2" {
   }
 }
 
-module "dvwa_web_ec2" {
+module "dvwa_ec2" {
   source                      = "terraform-aws-modules/ec2-instance/aws"
   version                     = "~> 3.0"
   name                        = "ips-dvwa-ec2"
