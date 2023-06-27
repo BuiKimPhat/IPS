@@ -92,7 +92,7 @@ module "static_web_ec2" {
   version                     = "~> 3.0"
   name                        = "ips-static_web-ec2"
   ami                         = var.ami
-  instance_type               = var.agent_ec2_type
+  instance_type               = var.static_web_ec2_type
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.allow_all.id]
   associate_public_ip_address = true
@@ -111,7 +111,7 @@ module "dvwa_web_ec2" {
   version                     = "~> 3.0"
   name                        = "ips-dvwa-ec2"
   ami                         = var.ami
-  instance_type               = var.agent_ec2_type
+  instance_type               = var.dvwa_ec2_type
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.allow_all.id]
   associate_public_ip_address = true
