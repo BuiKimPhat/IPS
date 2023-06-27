@@ -184,6 +184,15 @@ def mark_alert(request, alert_id):
     return redirect("monitorweb:alerts")
 
 @login_required
+def delete_all_alerts(request):
+    # Mark an alert as processed
+    try:
+        Alert.objects.all().delete()
+    except Exception as e:
+        print(e)
+    return redirect("monitorweb:alerts")
+
+@login_required
 def delete_iptables_rule(request, rule_id):
     # Mark an alert as processed
     try:

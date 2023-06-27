@@ -15,6 +15,6 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli contai
 docker run -d -p 8080:80 vulnerables/web-dvwa
 
 # Setup nginx reversed proxy
-cp ./config/nginx.conf /etc/nginx/nginx.conf
-cp ./config/dvwa /etc/nginx/site-availables/default
+cp /home/ubuntu/IPS/test/config/nginx.conf /etc/nginx/nginx.conf
+cp /home/ubuntu/IPS/test/config/dvwa /etc/nginx/sites-available/default
 service nginx restart

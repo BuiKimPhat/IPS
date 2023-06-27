@@ -28,9 +28,9 @@ module "ips_vpc" {
 }
 
 # Create Security groups
-data "http" "my_public_ip" {
-  url = "https://icanhazip.com" # fetch my public IP
-}
+# data "http" "my_public_ip" {
+#   url = "https://icanhazip.com" # fetch my public IP
+# }
 resource "aws_security_group" "allow_all" {
   name        = "ips-allow_all"
   description = "Allow all traffic"
