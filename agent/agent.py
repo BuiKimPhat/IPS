@@ -136,7 +136,7 @@ class IPSAgent:
                             net_in = 0
 
                         # Check the log for new events
-                        with open(self.log_path) as f:
+                        with open(self.log_path, 'rb', errors='ignore') as f:
                             if last_line_num == 0:
                                 f.seek(last_line_num, 2)
                             else:
@@ -164,7 +164,7 @@ class IPSAgent:
                             last_line_num = f.tell()
 
                         # Check the log for new events
-                        with open(self.portscan_log) as f:
+                        with open(self.portscan_log, 'rb', errors='ignore') as f:
                             if portscan_last_line_num == 0:
                                 f.seek(portscan_last_line_num, 2)
                             else:
