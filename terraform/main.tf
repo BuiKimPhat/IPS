@@ -31,30 +31,16 @@ module "ips_vpc" {
 data "http" "my_public_ip" {
   url = "https://icanhazip.com" # fetch my public IP
 }
-resource "aws_security_group" "ssh_http" {
-  name        = "ips-ssh_http"
-  description = "Allow SSH and HTTP inbound traffic"
+resource "aws_security_group" "allow_all" {
+  name        = "ips-allow_all"
+  description = "Allow all traffic"
   vpc_id      = module.ips_vpc.vpc_id
   ingress {
-    description = "SSH from My public IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.my_public_ip.response_body)}/32", "0.0.0.0/0"]
-  }
-  ingress {
-    description = "HTTP from My public IP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.my_public_ip.response_body)}/32", "0.0.0.0/0"]
-  }
-  ingress {
-    description = "HTTP from self SG"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    self        = true
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
   egress {
     from_port        = 0
@@ -89,7 +75,7 @@ module "monitor_ec2" {
   instance_type               = var.monitor_ec2_type
   key_name                    = var.key_name
   monitoring                  = true
-  vpc_security_group_ids      = [aws_security_group.ssh_http.id]
+  vpc_security_group_ids      = [aws_security_group.allow_all.id]
   associate_public_ip_address = true
   subnet_id                   = module.ips_vpc.public_subnets[0]
   private_ip                  = var.monitor_private_ip
@@ -101,18 +87,37 @@ module "monitor_ec2" {
   }
 }
 
-module "agent1_ec2" {
+module "static_web_ec2" {
   source                      = "terraform-aws-modules/ec2-instance/aws"
   version                     = "~> 3.0"
-  name                        = "ips-agent1-ec2"
+  name                        = "ips-static_web-ec2"
   ami                         = var.ami
   instance_type               = var.agent_ec2_type
   key_name                    = var.key_name
-  vpc_security_group_ids      = [aws_security_group.ssh_http.id]
+  vpc_security_group_ids      = [aws_security_group.allow_all.id]
   associate_public_ip_address = true
   subnet_id                   = module.ips_vpc.public_subnets[1]
-  private_ip                  = var.agent1_private_ip
-  user_data_base64            = var.agent_user_data_64
+  private_ip                  = var.static_web_private_ip
+  user_data_base64            = var.static_web_user_data_64
+  tags = {
+    Environment = "Dev"
+    Category    = "EC2"
+    ProjectName = "IPS"
+  }
+}
+
+module "dvwa_web_ec2" {
+  source                      = "terraform-aws-modules/ec2-instance/aws"
+  version                     = "~> 3.0"
+  name                        = "ips-dvwa-ec2"
+  ami                         = var.ami
+  instance_type               = var.agent_ec2_type
+  key_name                    = var.key_name
+  vpc_security_group_ids      = [aws_security_group.allow_all.id]
+  associate_public_ip_address = true
+  subnet_id                   = module.ips_vpc.public_subnets[1]
+  private_ip                  = var.dvwa_private_ip
+  user_data_base64            = var.dvwa_user_data_64
   tags = {
     Environment = "Dev"
     Category    = "EC2"

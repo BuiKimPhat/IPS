@@ -48,16 +48,30 @@ variable "monitor_private_ip" {
     default = "10.0.101.69"
 }
 
-# Agent EC2s
-variable "agent_ec2_type" {
+# Static web EC2s
+variable "static_web_ec2_type" {
     type = string
     default = "t2.micro"
 }
-variable "agent_user_data_64" {
+variable "static_web_user_data_64" {
     type = string
-    default = "IyEvYmluL2Jhc2gKdGltZWRhdGVjdGwgc2V0LXRpbWV6b25lIEFzaWEvSG9fQ2hpX01pbmgKYXB0LWdldCAteSB1cGRhdGUKYXB0LWdldCBpbnN0YWxsIC15IHB5dGhvbjMtcGlwIG5naW54CnN1IHVidW50dSAtYyAicGlwIGluc3RhbGwgd2Vic29ja2V0cyBwc3V0aWwiCmNkIC9ob21lL3VidW50dQpnaXQgY2xvbmUgaHR0cHM6Ly9CdWlLaW1QaGF0OmdpdGh1Yl9wYXRfMTFBSVFRVVBRMFhuUTE4R3IycjZQcF85bWdydG1RWDBqaVlZZ1FsVkpqaFphc2NMQjFod2VZSDZaT0pLYWRDYlF4QUo1WldBQkJsTk1OSlVzeUBnaXRodWIuY29tL0J1aUtpbVBoYXQvSVBTLmdpdApjaG93biAtUiB1YnVudHUgSVBTLw=="
+    default = "IyEvYmluL2Jhc2gKdGltZWRhdGVjdGwgc2V0LXRpbWV6b25lIEFzaWEvSG9fQ2hpX01pbmgKYXB0LWdldCAteSB1cGRhdGUKYXB0LWdldCBpbnN0YWxsIC15IHB5dGhvbjMtcGlwIG5naW54CnBpcCBpbnN0YWxsIHdlYnNvY2tldHMgcHN1dGlsCmNkIC9ob21lL3VidW50dQpnaXQgY2xvbmUgaHR0cHM6Ly9CdWlLaW1QaGF0OmdpdGh1Yl9wYXRfMTFBSVFRVVBRMFhuUTE4R3IycjZQcF85bWdydG1RWDBqaVlZZ1FsVkpqaFphc2NMQjFod2VZSDZaT0pLYWRDYlF4QUo1WldBQkJsTk1OSlVzeUBnaXRodWIuY29tL0J1aUtpbVBoYXQvSVBTLmdpdApjaG93biAtUiB1YnVudHUgSVBTLwpjZCBJUFMvCnNvdXJjZSAuL3NldHVwLnNoCnNvdXJjZSAuL3Rlc3Qvc3RhdGljX2NvbmZpZy5zaApweXRob24zIGFnZW50L2FnZW50LnB5IC1uIHN0YXRpY3dlYl9hZ2VudA=="
 }
-variable "agent1_private_ip" {
+variable "static_web_private_ip" {
+    type = string
+    default = "10.0.102.70"
+}
+
+# DVWA web EC2s
+variable "dvwa_ec2_type" {
+    type = string
+    default = "t2.micro"
+}
+variable "dvwa_user_data_64" {
+    type = string
+    default = "IyEvYmluL2Jhc2gKdGltZWRhdGVjdGwgc2V0LXRpbWV6b25lIEFzaWEvSG9fQ2hpX01pbmgKYXB0LWdldCAteSB1cGRhdGUKYXB0LWdldCBpbnN0YWxsIC15IHB5dGhvbjMtcGlwIG5naW54CnBpcCBpbnN0YWxsIHdlYnNvY2tldHMgcHN1dGlsCmNkIC9ob21lL3VidW50dQpnaXQgY2xvbmUgaHR0cHM6Ly9CdWlLaW1QaGF0OmdpdGh1Yl9wYXRfMTFBSVFRVVBRMFhuUTE4R3IycjZQcF85bWdydG1RWDBqaVlZZ1FsVkpqaFphc2NMQjFod2VZSDZaT0pLYWRDYlF4QUo1WldBQkJsTk1OSlVzeUBnaXRodWIuY29tL0J1aUtpbVBoYXQvSVBTLmdpdApjaG93biAtUiB1YnVudHUgSVBTLwpjZCBJUFMvCnNvdXJjZSAuL3NldHVwLnNoCnNvdXJjZSAuL3Rlc3QvZHZ3YV9jb25maWcuc2gKcHl0aG9uMyBhZ2VudC9hZ2VudC5weSAtbiBkdndhX2FnZW50"
+}
+variable "dvwa_private_ip" {
     type = string
     default = "10.0.102.69"
 }
