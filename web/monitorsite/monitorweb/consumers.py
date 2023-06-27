@@ -195,7 +195,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
             # Portscan log stream
             if text_data_json["type"] == "portscan_alert":
                 message = text_data_json["message"]
-                scanlogd_reg = "^(?P<timestamp>[a-zA-Z]+ \d+ \d{2}:\d{2}:\d{2}) (?P<hostname>\w+) scanlogd: (?P<scrip>\d+\.\d+\.\d+\.\d+).* to (?P<dstip>\d+\.\d+\.\d+\.\d+) (?P<message>.*)$"
+                scanlogd_reg = "^(?P<timestamp>[a-zA-Z]+ \d+ \d{2}:\d{2}:\d{2}) (?P<hostname>.+) scanlogd: (?P<scrip>\d+\.\d+\.\d+\.\d+).* to (?P<dstip>\d+\.\d+\.\d+\.\d+) (?P<message>.*)$"
                 obj = re.search(scanlogd_reg, message)
                 req = {
                     Request.ip.value : obj.group(3),
