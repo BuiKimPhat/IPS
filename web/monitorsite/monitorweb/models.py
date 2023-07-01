@@ -84,7 +84,7 @@ class Alert(models.Model):
 def create_iptables_rule(sender, instance, created, **kwargs):
     # Auto IPS for alerts
     if created and instance.rule and instance.rule.is_denied:
-        IptablesRule.objects.create(name=f"{instance.rule.rule_class} alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='INPUT', target='DROP', options='')
+        IptablesRule.objects.get_or_create(name=f"{instance.rule.rule_class} alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='INPUT', target='DROP', options='')
         # IptablesRule.objects.create(name=f"{instance.rule.rule_class} alert blocks IP", agent=instance.agent, srcip=instance.remote_addr, protocol='tcp', dport=80, chain='FORWARD', target='DROP')
 
 @receiver(post_save, sender=IptablesRule)
