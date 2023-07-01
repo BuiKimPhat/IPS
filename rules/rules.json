@@ -80,39 +80,11 @@
         "components": [
             {
                 "filter_field": "URL",
-                "regex": "\\\\x00"
+                "regex": "(\\\\x00|%00)"
             },
             {
-                "filter_field": "Headers",
-                "regex": "\\\\x00"
-            }
-        ]
-    },
-    {
-        "name": "Check FTP host",
-        "rule_class": "RFI",
-        "is_denied": true,
-        "ref": "",
-        "description": "Check URL for remote file inclusion",
-        "operator": "OR",
-        "components": [
-            {
-                "filter_field": "URL",
-                "regex": "^(?:ftp):\\/\\/[^\\/]+\\/.+"
-            }
-        ]
-    },
-    {
-        "name": "Excessive hexadecimal field",
-        "rule_class": "ExcessiveHeader",
-        "is_denied": true,
-        "ref": "",
-        "description": "Check Headers for Excessive hexadecimal field",
-        "operator": "OR",
-        "components": [
-            {
-                "filter_field": "URL",
-                "regex": "(?:\\\\\\\\x[a-f0-9]{2,4}){25}"
+                "filter_field": "Body",
+                "regex": "(\\\\x00|%00)"
             }
         ]
     },
@@ -131,11 +103,11 @@
         ]
     },
     {
-        "name": "CLRF injection",
-        "rule_class": "CLRF",
+        "name": "CRLF injection",
+        "rule_class": "CRLF",
         "is_denied": true,
         "ref": "",
-        "description": "Check URL or body for CLRF injection",
+        "description": "Check URL or body for CRLF injection",
         "operator": "OR",
         "components": [
             {
@@ -145,20 +117,6 @@
             {
                 "filter_field": "Body",
                 "regex": "((\\r|%0D|%E5%98%8D|\\\\u560d|%250D)|(\\n|%0A|%E5%98%8A|\\\\u560a|%250a))(Set(-|%2D|\\\\u002d|\\\\x0{0,}2d)Cookie|Content(-|%2D|\\\\u002d|\\\\x0{0,}2d)(Length|Type|Location|Disposition|Security(-|%2D|\\\\u002d|\\\\x0{0,}2d)Policy)|X(-|%2D|\\\\u002d|\\\\x0{0,}2d)XSS(-|%2D|\\\\u002d|\\\\x0{0,}2d)Protection|Last(-|%2D|\\\\u002d|\\\\x0{0,}2d)Modified|Location|Date|Link|Refresh|(<|%3C|\\+ADw-|&#0{0,}60;?|&#x0{0,}3c;?|\\\\u003c|\\\\x3c))"
-            }
-        ]
-    },
-    {
-        "name": "SSRF attack",
-        "rule_class": "SSRF",
-        "is_denied": true,
-        "ref": "",
-        "description": "Check headers for SSRF",
-        "operator": "OR",
-        "components": [
-            {
-                "filter_field": "URL",
-                "regex": "(?:(%2f|%5C|\\\\|\\/|%u2215|%u2216|%c0%af|%e0%80%af|%c0%2f|%c0%5c|%c0%80%5c|%252f|%255c|0x2f|0x5c|%uff0f|%25c0%25af|%25c0%252f|%32%{1,2}66|%35%{1,2}63|%25c1%259c|%25c0%25af|%f0%80%80%af|%f8%80%80%80%af|%c1%9c|%c1%pc|%c0%9v|%c0%qf|%c1%8s|%c1%1c|%c1%af|%bg%qf|%uEFC8|%uF025|%e0%81%9c|%f0%80%81%9c){2})(?P<domain>((\\w|(-|%2D|\\\\u002d|\\\\x0{0,}2d)|(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f))+(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65))*(?:\\w|(-|%2D|\\\\u002d|\\\\x0{0,}2d)|(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f))+[(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)(:|%3A|\\\\u003a|\\\\x3a)]\\w+)"
             }
         ]
     },
@@ -185,24 +143,20 @@
         ]
     },
     {
-        "name": "Prototype pollution",
-        "rule_class": "Prototype pollution",
+        "name": "OS command injection",
+        "rule_class": "OS command",
         "is_denied": true,
         "ref": "",
-        "description": "Check URL, body and headers for Prototype pollution",
+        "description": "Check URL, Body for OS command injection",
         "operator": "OR",
         "components": [
             {
                 "filter_field": "URL",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
+                "regex": "(((&|%26|\\+ACY-|\\\\u0026|\\\\x0{0,}26)+)|((\\||%7c|\\+AHw-|\\\\u007c|\\\\x0{0,}7c)+)|(;+))((\\s|\\t|%20)*)(cat|ls|echo|whoami|nc|netcat)"
             },
             {
                 "filter_field": "Body",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
-            },
-            {
-                "filter_field": "Headers",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
+                "regex": "(((&|%26|\\+ACY-|\\\\u0026|\\\\x0{0,}26)+)|((\\||%7c|\\+AHw-|\\\\u007c|\\\\x0{0,}7c)+)|(;+))((\\s|\\t|%20)*)(cat|ls|echo|whoami|nc|netcat)"
             }
         ]
     }
