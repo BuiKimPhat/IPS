@@ -118,7 +118,7 @@ def alert_detail(request, alert_id):
     # Get alert
     alert = get_object_or_404(Alert, pk=alert_id)
 
-    context = {"alert": alert, "page_header": f"Alert {alert.name}", "new_alerts": new_alerts}
+    context = {"alert": alert, "page_header": f"Alert #{alert.id}", "new_alerts": new_alerts}
     return render(request, "monitorweb/alert_detail.html", context)  
 
 # Rules

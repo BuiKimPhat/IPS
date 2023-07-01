@@ -251,6 +251,7 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
         action = event["action"] 
         target = event["target"] 
         dport = event["dport"]
+        options = event["options"]
 
         await self.send_json({
             "type": "iptables_rule", 
@@ -259,7 +260,8 @@ class IPSConsumer(AsyncJsonWebsocketConsumer):
             "chain": chain, 
             "action": action, 
             "target": target, 
-            "dport": dport
+            "dport": dport,
+            "options": options
         })
 
     async def dashboard_update(self, event):
