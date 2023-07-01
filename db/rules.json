@@ -89,20 +89,6 @@
         ]
     },
     {
-        "name": "Check FTP host",
-        "rule_class": "RFI",
-        "is_denied": true,
-        "ref": "",
-        "description": "Check URL for remote file inclusion",
-        "operator": "OR",
-        "components": [
-            {
-                "filter_field": "URL",
-                "regex": "^(?:ftp):\\/\\/[^\\/]+\\/.+"
-            }
-        ]
-    },
-    {
         "name": "Excessive hexadecimal field",
         "rule_class": "ExcessiveHeader",
         "is_denied": true,
@@ -185,24 +171,20 @@
         ]
     },
     {
-        "name": "Prototype pollution",
-        "rule_class": "Prototype pollution",
+        "name": "Check for interactive shell command",
+        "rule_class": "OS command",
         "is_denied": true,
         "ref": "",
-        "description": "Check URL, body and headers for Prototype pollution",
+        "description": "Check URL, Body for shell payload",
         "operator": "OR",
         "components": [
             {
                 "filter_field": "URL",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
+                "regex": "\\/+bin\\/+(((r?ba|da)?sh)|(tmux)|(screen))"
             },
             {
                 "filter_field": "Body",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
-            },
-            {
-                "filter_field": "Headers",
-                "regex": "((_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)proto(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)(_|%5F|\\+AF8-|\\\\u005f|\\\\x0{0,}5f)|(\\S|((?!%20).))(%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)prototype((%2e|\\.|%u002e|%c0%2e|%e0%40%ae|%c0%ae|%252e|0x2e|%uff0e|%00\\.|\\.%00|%c0\\.|%25c0%25ae|%32%{1,2}65)|(\\[|%5B|\\+AFs-|\\\\u005b|\\\\x0{0,}5b)))"
+                "regex": "\\/+bin\\/+(((r?ba|da)?sh)|(tmux)|(screen))"
             }
         ]
     }
