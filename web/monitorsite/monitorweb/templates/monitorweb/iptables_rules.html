@@ -114,13 +114,13 @@
                 <td>{{iptrule.srcip}}</td>
                 <td>{{iptrule.dport}}</td>
                 <td>{{iptrule.target}}</td>
-                <td><a href="{% url 'monitorweb:delete_iptables_rule' iptrule.id %}" class="text-reset"><i class="bi bi-trash3"></i></a></td>
+                <td><a href="{% url 'monitorweb:delete_iptables_rule' iptrule.id %}" class="text-reset" title="Delete iptables rule #{{iptrule.id}}"><i class="bi bi-trash3"></i></a></td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<a href="/admin/monitorweb/iptablesrule/add/" class="btn btn-outline-secondary mb-3 me-3">Create a new iptables rule</a>
+<a href="/admin/monitorweb/iptablesrule/add/" class="btn btn-outline-secondary mb-3 me-3">New</a>
 <div class="alert alert-light" role="alert">
     <i class="bi bi-info-circle"></i> No Iptables rule. No IP will be blocked.
 </div>

@@ -120,7 +120,7 @@
     </tbody>
 </table>
 {% else %}
-<a href="/admin/monitorweb/rule/add/" class="btn btn-outline-secondary mb-3 me-2">Create a new rule</a>
+<a href="/admin/monitorweb/rule/add/" class="btn btn-outline-secondary mb-3 me-2">New</a>
 <form method="post" class="input-group mb-3 me-3 w-auto" enctype="multipart/form-data" action="/api/import_rules/">
     {% csrf_token %}
     <input name="file" class="form-control" type="file" id="importFile">
