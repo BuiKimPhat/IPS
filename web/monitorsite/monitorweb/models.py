@@ -57,6 +57,8 @@ class IptablesRule(models.Model):
     target = models.CharField(max_length=10)
     dport = models.PositiveIntegerField()
     options = models.CharField(blank=True,null=True,max_length=200)
+    class Meta:
+        unique_together = ('srcip', 'protocol','chain','target','dport', 'options','agent')
 
 class Alert(models.Model):
     def __str__(self):
