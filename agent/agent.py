@@ -13,7 +13,7 @@ class IPSAgent:
     def __init__(self, server, name, interface, health, log_path, portscan_log):
         self.server = server
         self.name = name
-        self.uri = self.server+self.name+"/"
+        self.uri = f"ws://{self.server}/ws/ips/{self.name}/"
         self.ip = ""
         self.health = health
         self.interface = interface
@@ -195,7 +195,7 @@ class IPSAgent:
 
 async def main():
     parser = argparse.ArgumentParser(description='Python agent for sending computer metrics and ModSecurity audit logs to a WebSocket server')
-    parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server URI', default='ws://10.0.101.69/ws/ips/')
+    parser.add_argument('-s','--server', required=False, type=str, help='WebSocket server IP', default='10.0.101.69')
     parser.add_argument('-c','--check-uri', required=False, type=str, help='Health check full URI (use this if you want to enable health check for the web server)', default='None')
     parser.add_argument('-n','--name', required=True, type=str, help='Agent name to register with the WebSocket server')
     parser.add_argument('-i','--interface', required=False, type=str, help='NIC chosen to register its IP to WebSocket server', default='eth0')
