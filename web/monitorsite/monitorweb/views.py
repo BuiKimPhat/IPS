@@ -250,3 +250,21 @@ def import_rules(request):
     except Exception as e:
         print("Import error: ", e)
     return redirect("monitorweb:rules")
+
+@login_required
+def delete_all_rules(request):
+    # Mark an alert as processed
+    try:
+        Rule.objects.all().delete()
+    except Exception as e:
+        print(e)
+    return redirect("monitorweb:rules")
+
+@login_required
+def delete_all_iptrules(request):
+    # Mark an alert as processed
+    try:
+        IptablesRule.objects.all().delete()
+    except Exception as e:
+        print(e)
+    return redirect("monitorweb:iptables_rules")
