@@ -42,6 +42,7 @@
             aria-describedby="button-search">
         <button class="btn btn-outline-secondary" type="submit" id="button-search"><i class="bi bi-search"></i></button>
     </form>
+    <span class="mx-3 mt-1">Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} </span>
     <ul class="pagination ms-auto">
         {% if page_obj.has_previous %}
         <li class="page-item">
