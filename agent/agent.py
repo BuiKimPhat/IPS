@@ -63,7 +63,11 @@ class IPSAgent:
                         message_raw = await websocket.recv()
                         message = json.loads(message_raw)
                         if message["type"] == "iptables_rule":
-                            subprocess.run(["iptables", f"-{message['action']}", message['chain'], "-p", message['protocol'], "-s", message['srcip'], "-i", self.interface, "--dport", str(message['dport']), "-j", message['target']])
+                            if message['srcip'] is not None and message['srcip'] != "":
+                                subprocess.run(["iptables", f"-{message['action']}", message['chain'], "-p", message['protocol'], "-s", message['srcip'], "-i", self.interface, "--dport", str(message['dport']), "-j", message['target']] + message["options"].split(" "))
+                            else:
+                                subprocess.run(["iptables", f"-{message['action']}", message['chain'], "-p", message['protocol'], "-i", self.interface, "--dport", str(message['dport']), "-j", message['target']] + message["options"].split(" "))
+
             except Exception as e:
                 connected = False
                 print("Error: ", e)
