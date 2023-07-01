@@ -2,11 +2,11 @@
 
 ### Features
 - [x] Monitor web servers/proxies (using NGINX) metrics
+- [x] IPS with simple rules
+- [x] Web UI for custom rules (iptables)
 
 ### To-do
-- [ ] IPS with simple Top 10 OWASP
-- [ ] Web UI for custom rules (iptables)
-- [ ] Monitor logs
+- [ ] Secure the protocol
 
 ### Setup on **agent**
 1. Run `sudo ./agent/setup.sh`
