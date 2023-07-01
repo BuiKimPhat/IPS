@@ -126,7 +126,7 @@
             <div class="d-flex w-100 align-items-center">
                 <h1 class="display-6"><i><b>IPS</b> {{page_header}}</i></h1>
                 <div class="ms-auto">
-                    <i>Welcome, <b>{{user}}</b></i>
+                    <i>Welcome, <b>{{user}}</b> {% if user.is_staff %}<a href="/admin/" title="Go to admin site" class="text-reset ms-3"><i class="bi bi-database-gear"></i></a>{% endif %}</i>
                     <div class="my-0 ms-3 d-inline dropdown">
                         <a title="Alerts pending" href="#" class="text-reset" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
