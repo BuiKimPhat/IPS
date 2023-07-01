@@ -89,20 +89,6 @@
         ]
     },
     {
-        "name": "Excessive hexadecimal field",
-        "rule_class": "ExcessiveHeader",
-        "is_denied": true,
-        "ref": "",
-        "description": "Check Headers for Excessive hexadecimal field",
-        "operator": "OR",
-        "components": [
-            {
-                "filter_field": "URL",
-                "regex": "(?:\\\\\\\\x[a-f0-9]{2,4}){25}"
-            }
-        ]
-    },
-    {
         "name": "Check for bad bots",
         "rule_class": "Bots",
         "is_denied": true,
@@ -171,7 +157,7 @@
         ]
     },
     {
-        "name": "Check for interactive shell command",
+        "name": "Interactive shell command",
         "rule_class": "OS command",
         "is_denied": true,
         "ref": "",
