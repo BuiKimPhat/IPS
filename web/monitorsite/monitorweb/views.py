@@ -175,7 +175,7 @@ def iptables_rules(request):
     if search is None:
         rule_list = IptablesRule.objects.all()
     else: 
-        rule_list = IptablesRule.objects.filter(Q(name__icontains=search) | Q(agent__name__icontains=search) | Q(srcip__contains=search) | Q(protocol__icontains=search) | Q(dport=search) | Q(chain__icontains=search) | Q(target__icontains=search))
+        rule_list = IptablesRule.objects.filter(Q(name__icontains=search) | Q(agent__name__icontains=search) | Q(srcip__contains=search) | Q(protocol__icontains=search) | Q(chain__icontains=search) | Q(target__icontains=search))
 
     paginator = Paginator(rule_list, max_rule_inpage)
     page_number = request.GET.get("page", 1)
