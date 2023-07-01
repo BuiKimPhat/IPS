@@ -1,0 +1,70 @@
+{% extends 'monitorweb/base.html' %}
+
+{% block head %}
+<title>#{{alert.id}} - Alert - IPS</title>
+{% endblock head %}
+
+{% block content %}
+
+<table class="my-3 table">
+    <tbody>
+        <tr>
+            <th scope="row">Agent name</th>
+            <td><a href="{% url 'monitorweb:agent_detail' alert.agent.id %}" class="text-reset">{{alert.agent.name}}</a></td>
+        </tr>
+        <tr>
+            <th scope="row">Rule name</th>
+            <td><a href="{% url 'monitorweb:rule_detail' alert.rule.id %}" class="text-reset">{{alert.rule.name}}</a></td>
+        </tr>
+        <tr>
+            <th scope="row">Action</th>
+            <td>{% if alert.rule.is_denied %}Blocked{% else %}Allowed{% endif %}</td>
+        </tr>
+        <tr>
+            <th scope="row">Processed by</th>
+            <td>{% if alert.is_processed %}{{alert.processed_by}}{% else %}Not processed{% endif %}</td>
+        </tr>
+        <tr>
+            <th scope="row">Source IP</th>
+            <td>{{alert.remote_addr}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Request</th>
+            <td>{{alert.request}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Status code</th>
+            <td>{{alert.status}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Message</th>
+            <td>{{alert.message}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Headers</th>
+            <td>{{alert.headers}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Remote user</th>
+            <td>{{alert.remote_user}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Body bytes sent</th>
+            <td>{{alert.body_bytes_sent}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Request time</th>
+            <td>{{alert.request_time}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Body</th>
+            <td>{{alert.body}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Timestamp</th>
+            <td>{{alert.timestamp}}</td>
+        </tr>
+    </tbody>
+</table>
+
+{% endblock content %}

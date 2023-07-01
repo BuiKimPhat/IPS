@@ -99,6 +99,7 @@
             <th scope="col">Request</th>
             <th scope="col">Action</th>
             <th scope="col">Time</th>
+            <th scope="col">Detail</th>
         </tr>
     </thead>
     <tbody>
@@ -111,6 +112,7 @@
                 <td>{{alert.request}}</td>
                 <td>{% if alert.rule.is_denied %}Blocked{% else %}Allowed{% endif %}</td>
                 <td>{{alert.timestamp}}</td>
+                <td><a href="{% url 'monitorweb:alert_detail' alert.id %}" class="text-reset"><i class="bi bi-eye"></i></a></td>
             </tr>
         {% endfor %}
     </tbody>

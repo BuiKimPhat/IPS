@@ -9,6 +9,7 @@ urlpatterns = [
     path("agents/", views.agents, name="agents"),
     path("agent/<int:agent_id>/", views.agent_detail, name="agent_detail"),
     path("alerts/", views.alerts, name="alerts"),
+    path("alert/<int:alert_id>/", views.alert_detail, name="alert_detail"),
     path("logout/", views.logout, name="logout"),
     path("rules/", views.rules, name="rules"),
     path("rule/<int:rule_id>/", views.rule_detail, name="rule_detail"),

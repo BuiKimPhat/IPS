@@ -47,6 +47,8 @@ def index(request):
     context = {"page_header": "Dashboard", "new_alerts": new_alerts}
     return render(request, "monitorweb/index.html", context)    
 
+# Agents
+
 @login_required
 def agent_detail(request, agent_id):
     # Notification
@@ -82,6 +84,8 @@ def agents(request):
     page_obj = paginator.get_page(page_number)
     return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "page_header": "Agents", "new_alerts": new_alerts})    
 
+# Alerts
+
 @login_required
 def alerts(request):
     # Notification
@@ -102,6 +106,22 @@ def alerts(request):
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
     return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts", "new_alerts": new_alerts})    
+
+@login_required
+def alert_detail(request, alert_id):
+    # Notification
+    max_alert_noti = 15
+    new_alerts = Alert.objects.filter(is_processed=False).order_by("-timestamp")
+    new_alerts_count = new_alerts.count()
+    if new_alerts_count > max_alert_noti:
+        new_alerts = new_alerts[:max_alert_noti]
+    # Get alert
+    alert = get_object_or_404(Alert, pk=alert_id)
+
+    context = {"alert": alert, "page_header": f"Alert {alert.name}", "new_alerts": new_alerts}
+    return render(request, "monitorweb/alert_detail.html", context)  
+
+# Rules
 
 @login_required
 def rules(request):
@@ -138,6 +158,8 @@ def rule_detail(request, rule_id):
 
     context = {"rule": rule, "rule_components": rule_components, "page_header": f"WAF Rule {rule.name}", "new_alerts": new_alerts}
     return render(request, "monitorweb/rule_detail.html", context)  
+
+# Iptables rules
 
 @login_required
 def iptables_rules(request):
