@@ -46,6 +46,18 @@
             aria-describedby="button-search">
         <button class="btn btn-outline-secondary" type="submit" id="button-search"><i class="bi bi-search"></i></button>
     </form>
+    <div class="ms-3 dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Sort by
+        </button>
+        <ul class="dropdown-menu me-3">
+            <li><a class="dropdown-item" href="?sort=name">Name</a></li>
+            <li><a class="dropdown-item" href="?sort=rule_class">Rule class</a></li>
+            <li><a class="dropdown-item" href="?sort=is_denied">Block IP</a></li>
+            <li><a class="dropdown-item" href="?sort=ref">Ref</a></li>
+            <li><a class="dropdown-item" href="?sort=operator">Operator</a></li>
+        </ul>
+      </div>
     <span class="mx-3 mt-1">Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} </span>
     <ul class="pagination ms-auto">
         {% if page_obj.has_previous %}

@@ -78,6 +78,9 @@ def agents(request):
         agent_list = Agent.objects.order_by("-registered_at")
     else: 
         agent_list = Agent.objects.filter(Q(name__icontains=search) | Q(ip__contains=search) | Q(health__icontains=search)).order_by("-registered_at")
+    sort = request.GET.get("sort")
+    if sort is not None:
+        agent_list = agent_list.order_by(sort)
 
     paginator = Paginator(agent_list, max_agent_inpage)
     page_number = request.GET.get("page", 1)
@@ -101,6 +104,10 @@ def alerts(request):
         alert_list = Alert.objects.order_by("-timestamp")
     else: 
         alert_list = Alert.objects.filter(Q(message__icontains=search) | Q(rule__name__icontains=search) | Q(rule__rule_class__icontains=search) | Q(agent__ip__contains=search) | Q(remote_addr__icontains=search) | Q(request__icontains=search) | Q(agent__name__icontains=search)).order_by("-timestamp")
+    sort = request.GET.get("sort")
+    if sort is not None:
+        alert_list = alert_list.order_by(sort)
+
 
     paginator = Paginator(alert_list, max_alert_inpage)
     page_number = request.GET.get("page", 1)
@@ -138,6 +145,9 @@ def rules(request):
         rule_list = Rule.objects.all()
     else: 
         rule_list = Rule.objects.filter(Q(name__icontains=search) | Q(rule_class__icontains=search) | Q(description__icontains=search) | Q(ref__icontains=search) | Q(operator=search))
+    sort = request.GET.get("sort")
+    if sort is not None:
+        rule_list = rule_list.order_by(sort)
 
     paginator = Paginator(rule_list, max_rule_inpage)
     page_number = request.GET.get("page", 1)
@@ -176,6 +186,9 @@ def iptables_rules(request):
         rule_list = IptablesRule.objects.all()
     else: 
         rule_list = IptablesRule.objects.filter(Q(name__icontains=search) | Q(agent__name__icontains=search) | Q(srcip__contains=search) | Q(protocol__icontains=search) | Q(chain__icontains=search) | Q(target__icontains=search))
+    sort = request.GET.get("sort")
+    if sort is not None:
+        rule_list = rule_list.order_by(sort)
 
     paginator = Paginator(rule_list, max_rule_inpage)
     page_number = request.GET.get("page", 1)

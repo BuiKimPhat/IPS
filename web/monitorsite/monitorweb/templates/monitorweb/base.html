@@ -21,13 +21,13 @@
             border: 1px solid black;
         }
 
-        .dropdown-menu {
+        .noti-drop {
             max-height: 80vh;
             width: 40vw;
             overflow-y: auto;
         }
 
-        .dropdown-menu .dropdown-item {
+        .noti-drop .dropdown-item {
             white-space: normal;
         }
 
@@ -136,7 +136,7 @@
                                 0
                             </span>
                         </a>
-                        <ul id="alert-notification-dropdown" class="dropdown-menu">
+                        <ul id="alert-notification-dropdown" class="noti-drop dropdown-menu">
                             <li><a href="/alerts/" class="dropdown-header">Go to Alerts</a></li>
                             {% if new_alerts %}
                             {% for new_alert in new_alerts %}

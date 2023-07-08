@@ -14,7 +14,6 @@
         }
         return false;
     }
-
 </script>
 <style>
     .active {
@@ -37,11 +36,24 @@
 <nav aria-label="Page pagination" class="{% if search is None %}mt-3{% endif %} d-flex">
     <a href="/admin/monitorweb/iptablesrule/add/" class="btn btn-outline-secondary mb-3 me-3">New</a>
     <a href="#" class="btn btn-outline-danger mb-3 me-3" onclick="return deleteIptRules();">Delete all</a>
-    <form class="input-group mb-3" style="max-width: 400px;" onsubmit="return search(event);">
+    <form class="input-group mb-3 me-3" style="max-width: 400px;" onsubmit="return search(event);">
         <input id="search-content" type="text" class="form-control" placeholder="Search" aria-label="Search"
             aria-describedby="button-search">
         <button class="btn btn-outline-secondary" type="submit" id="button-search"><i class="bi bi-search"></i></button>
     </form>
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Sort by
+        </button>
+        <ul class="dropdown-menu me-3">
+          <li><a class="dropdown-item" href="?sort=name">Name</a></li>
+          <li><a class="dropdown-item" href="?sort=agent">Agent</a></li>
+          <li><a class="dropdown-item" href="?sort=srcip">Source IP</a></li>
+          <li><a class="dropdown-item" href="?sort=protocol">Protocol</a></li>
+          <li><a class="dropdown-item" href="?sort=dport">Destination Port</a></li>
+          <li><a class="dropdown-item" href="?sort=target">Target</a></li>
+        </ul>
+      </div>
     <span class="mx-3 mt-1">Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} </span>
     <ul class="pagination ms-auto">
         {% if page_obj.has_previous %}
