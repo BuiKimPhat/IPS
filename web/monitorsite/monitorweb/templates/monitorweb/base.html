@@ -140,7 +140,7 @@
                             <li><a href="/alerts/" class="dropdown-header">Go to Alerts</a></li>
                             {% if new_alerts %}
                             {% for new_alert in new_alerts %}
-                            <li><a href="#" class="dropdown-item">
+                            <li><a href="#" class="dropdown-item noti-drop-item">
                                     <div>
                                         <b class="m-0">{{new_alert.rule.rule_class}} attack at agent
                                             {{new_alert.agent.name}}</b>

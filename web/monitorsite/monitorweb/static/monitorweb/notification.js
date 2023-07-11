@@ -34,7 +34,7 @@ const dropdown_child = data => {
     let li = document.createElement('li');
     let a = document.createElement('a');
     a.href = "#";
-    a.className = "dropdown-item";
+    a.className = "dropdown-item noti-drop-item";
     let div = document.createElement('div');
     let header = document.createElement('b');
     header.textContent = data.rule_class + " attack at agent " + data.agent_name;
@@ -86,7 +86,7 @@ const toast_child = data => {
 
 const update_dropdown_list = (data, max_noti) => {
     const noti_dropdown = document.getElementById("alert-notification-dropdown");
-    const exist_alerts = Array.from(document.getElementsByClassName('dropdown-item')).map(item => item.parentElement.cloneNode(true));
+    const exist_alerts = Array.from(document.getElementsByClassName('dropdown-item noti-drop-item')).map(item => item.parentElement.cloneNode(true));
 
     const nodes = data.alerts.map(item => dropdown_child(item));
     // Concat if there are existing alerts
@@ -104,7 +104,7 @@ const update_dropdown_list = (data, max_noti) => {
 }
 
 const update_badge = (max_noti) => {
-    const new_alerts_num = document.getElementsByClassName('dropdown-item').length;
+    const new_alerts_num = document.getElementsByClassName('dropdown-item noti-drop-item').length;
     const badge = document.getElementById("notification-bell");
     if (new_alerts_num == 0) badge.style.display = 'none';
     else {
