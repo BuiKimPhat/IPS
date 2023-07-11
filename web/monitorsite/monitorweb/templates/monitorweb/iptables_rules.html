@@ -58,44 +58,44 @@
     <ul class="pagination ms-auto">
         {% if page_obj.has_previous %}
         <li class="page-item">
-            <a class="text-reset page-link" href="?page=1{% if search %}&search={{search}}{% endif %}"><i
+            <a class="text-reset page-link" href="?page=1{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}"><i
                     class="bi bi-skip-backward"></i></a>
         </li>
         <li class="page-item">
             <a class="text-reset page-link"
-                href="?page={{page_obj.previous_page_number}}{% if search %}&search={{search}}{% endif %}"><i
+                href="?page={{page_obj.previous_page_number}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}"><i
                     class="bi bi-rewind"></i></a>
         </li>
         {% if page_obj.previous_page_number|add:"-1" >= 1 %}
         <li class="page-item"><a class="text-reset page-link"
-                href="?page={{page_obj.previous_page_number|add:'-1'}}{% if search %}&search={{search}}{% endif %}">{{page_obj.previous_page_number|add:"-1"}}</a>
+                href="?page={{page_obj.previous_page_number|add:'-1'}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}">{{page_obj.previous_page_number|add:"-1"}}</a>
         </li>
         {% endif %}
         <li class="page-item"><a class="text-reset page-link"
-                href="?page={{page_obj.previous_page_number}}{% if search %}&search={{search}}{% endif %}">{{page_obj.previous_page_number}}</a>
+                href="?page={{page_obj.previous_page_number}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}">{{page_obj.previous_page_number}}</a>
         </li>
         {% endif %}
         <li class="page-item active" aria-current="page">
             <a class="text-reset page-link"
-                href="?page={{page_obj.number}}{% if search %}&search={{search}}{% endif %}">{{page_obj.number}}</a>
+                href="?page={{page_obj.number}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}">{{page_obj.number}}</a>
         </li>
         {% if page_obj.has_next %}
         <li class="page-item"><a class="text-reset page-link"
-                href="?page={{page_obj.next_page_number}}{% if search %}&search={{search}}{% endif %}">{{page_obj.next_page_number}}</a>
+                href="?page={{page_obj.next_page_number}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}">{{page_obj.next_page_number}}</a>
         </li>
         {% if page_obj.next_page_number|add:1 <= page_obj.paginator.num_pages %} <li class="page-item"><a
                 class="text-reset page-link"
-                href="?page={{page_obj.next_page_number|add:1}}{% if search %}&search={{search}}{% endif %}">{{page_obj.next_page_number|add:1}}</a>
+                href="?page={{page_obj.next_page_number|add:1}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}">{{page_obj.next_page_number|add:1}}</a>
             </li>
             {% endif %}
             <li class="page-item">
                 <a class="text-reset page-link"
-                    href="?page={{page_obj.next_page_number}}{% if search %}&search={{search}}{% endif %}"><i
+                    href="?page={{page_obj.next_page_number}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}"><i
                         class="bi bi-fast-forward"></i></a>
             </li>
             <li class="page-item">
                 <a class="text-reset page-link"
-                    href="?page={{page_obj.paginator.num_pages}}{% if search %}&search={{search}}{% endif %}"><i
+                    href="?page={{page_obj.paginator.num_pages}}{% if search %}&search={{search}}{% endif %}{% if sort %}&sort={{sort}}{% endif %}"><i
                         class="bi bi-skip-forward"></i></a>
             </li>
             {% endif %}

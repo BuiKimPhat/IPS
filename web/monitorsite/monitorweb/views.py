@@ -85,7 +85,7 @@ def agents(request):
     paginator = Paginator(agent_list, max_agent_inpage)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "page_header": "Agents", "new_alerts": new_alerts})    
+    return render(request, "monitorweb/agents.html", {"page_obj": page_obj, "search": search, "sort": sort, "page_header": "Agents", "new_alerts": new_alerts})    
 
 # Alerts
 
@@ -112,7 +112,7 @@ def alerts(request):
     paginator = Paginator(alert_list, max_alert_inpage)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "page_header": "Alerts", "new_alerts": new_alerts})    
+    return render(request, "monitorweb/alerts.html", {"page_obj": page_obj, "search": search, "sort": sort, "page_header": "Alerts", "new_alerts": new_alerts})    
 
 @login_required
 def alert_detail(request, alert_id):
@@ -152,7 +152,7 @@ def rules(request):
     paginator = Paginator(rule_list, max_rule_inpage)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/rules.html", {"page_obj": page_obj, "search": search, "page_header": "Rules", "new_alerts": new_alerts})    
+    return render(request, "monitorweb/rules.html", {"page_obj": page_obj, "search": search, "sort": sort, "page_header": "Rules", "new_alerts": new_alerts})    
 
 @login_required
 def rule_detail(request, rule_id):
@@ -193,7 +193,7 @@ def iptables_rules(request):
     paginator = Paginator(rule_list, max_rule_inpage)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
-    return render(request, "monitorweb/iptables_rules.html", {"page_obj": page_obj, "search": search, "page_header": "Iptables Rules", "new_alerts": new_alerts})    
+    return render(request, "monitorweb/iptables_rules.html", {"page_obj": page_obj, "search": search, "sort": sort, "page_header": "Iptables Rules", "new_alerts": new_alerts})    
 
 
 # APIs
