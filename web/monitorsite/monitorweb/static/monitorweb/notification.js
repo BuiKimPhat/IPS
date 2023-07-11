@@ -135,10 +135,6 @@ const update_toasts = (data, max_toast) => {
             full_interval = timestamp;
         }
     } else {
-        for (let i = 0; i < toast_container.childElementCount; i++) {
-            const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toast_container.children[i]);
-            toastBootstrap.hide();
-        }
         for (let i = 0; i < (max_toast <= new_toasts.length ? max_toast : new_toasts.length); i++) {
             toast_container.appendChild(new_toasts[i]);
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(new_toasts[i]);
